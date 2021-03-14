@@ -1,5 +1,7 @@
 # picross
 
+[![Deploy](https://github.com/danielholmes/picross/actions/workflows/deploy.yml/badge.svg)](https://github.com/danielholmes/picross/actions/workflows/deploy.yml)
+
 Play a library of picross puzzles and use an "AI" to solve them like a human might.
 
 
