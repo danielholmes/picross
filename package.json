@@ -14,7 +14,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "ts": "tsc --noEmit",
-    "test": "TODO: Setup"
+    "test": "echo 'TODO: Setup'"
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
