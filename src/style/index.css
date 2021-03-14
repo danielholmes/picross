@@ -1,0 +1,21 @@
+.attempt-problem {
+	display: flex;
+	flex-direction: row;
+}
+
+.attempt-col {
+	flex-direction: column;
+	display: flex;
+}
+
+.attempt-cell {
+	width: 30px;
+	height: 30px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.attempt-cell.attempt-selected {
+	background-color: black;
+}
