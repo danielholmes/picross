@@ -1,10 +1,14 @@
-import { GoFile } from "react-icons/go";
+import { GoSearch, GoLightBulb } from "react-icons/go";
 import { ProblemLibrary } from "./model";
 
 const allIcons = [
   {
-    name: "File",
-    Component: GoFile,
+    name: "Magnifying Glass",
+    Component: GoSearch,
+  },
+  {
+    name: "Light Bulb",
+    Component: GoLightBulb,
   },
 ];
 
