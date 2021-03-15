@@ -30,3 +30,8 @@ npm run lint
 npm run ts
 npm run test
 ```
+
+
+## Appendix
+
+For deployment - <https://joshuatz.com/posts/2021/deploy-preact-from-subdirectory/>
