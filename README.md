@@ -4,6 +4,8 @@
 
 Play a library of picross puzzles and use an "AI" to solve them like a human might.
 
+<http://picross.danielholmes.org/>
+
 
 ## Development Requirements
 
