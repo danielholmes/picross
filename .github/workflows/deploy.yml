@@ -27,7 +27,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Clean unused files
-        run: "find . ! -depth 1 -regex '\\(build\\|.git\\)$' -print0 | xargs -0 -I {} rm -rf {}"
+        run: "find . -not \\( -name 'build' -o -name '.git' \\) -depth 1 -print0 | xargs -0 -I {} rm -rf {}"
       - name: See contents
         run: "ls -la ."
       - name: Commit changes
