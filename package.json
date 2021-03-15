@@ -3,7 +3,6 @@
   "name": "picross",
   "version": "0.0.0",
   "license": "MIT",
-  "publicPath": "/picross/",
   "scripts": {
     "prepare": "husky install",
     "prebuild": "run-s ts lint:check format:check test",
