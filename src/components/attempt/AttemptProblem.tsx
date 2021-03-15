@@ -4,16 +4,9 @@ import {
   incorrectMark,
   isComplete,
   Problem,
-  ProblemAttempt,
 } from "../../model";
 import AttemptCell from "./AttemptCell";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useState,
-} from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import createNewAttempt from "./createNewAttempt";
 import progressAttempt from "./progressAttempt";
 import Grid from "../grid";
@@ -24,65 +17,18 @@ interface AttemptProblemProps {
   readonly onFail: () => void;
 }
 
-interface CreateAttemptAction {
-  readonly type: "create";
-  readonly problem: Problem;
-}
-
-interface SecondPassedAction {
-  readonly type: "secondPassed";
-}
-
-interface IncorrectMarkAction {
-  readonly type: "incorrectMark";
-}
-
-interface ProgressAttempt {
-  readonly type: "progress";
-  readonly x: number;
-  readonly y: number;
-  readonly newStatus: AttemptCellStatus;
-}
-
-type AttemptAction =
-  | CreateAttemptAction
-  | ProgressAttempt
-  | SecondPassedAction
-  | IncorrectMarkAction;
-
 export default function AttemptProblem({
   problem,
   onFail,
   onSuccess,
 }: AttemptProblemProps): JSX.Element {
   // Attempt state
-  const [attempt, dispatchAttempt] = useReducer(
-    (previous: ProblemAttempt, action: AttemptAction) => {
-      switch (action.type) {
-        case "create":
-          return createNewAttempt(action.problem);
-        case "progress":
-          return progressAttempt(
-            previous,
-            action.x,
-            action.y,
-            action.newStatus
-          );
-        case "incorrectMark":
-          return incorrectMark(previous);
-        case "secondPassed":
-          return {
-            ...previous,
-            timeRemaining: previous.timeRemaining.minus({ second: 1 }),
-          };
-        default:
-          throw new Error("Unknown action");
-      }
-    },
-    createNewAttempt(problem)
-  );
+  const [attempt, setAttempt] = useState(() => createNewAttempt(problem));
+
   useEffect(() => {
-    dispatchAttempt({ type: "create", problem });
+    // Unfortunately this results in running twice (the state initialiser).
+    // Maybe can skip on first run?
+    setAttempt(createNewAttempt(problem));
   }, [problem]);
   const { timeRemaining, marks } = attempt;
   const hasTimeRemaining = timeRemaining.as("seconds");
@@ -106,10 +52,12 @@ export default function AttemptProblem({
     if (!hasTimeRemaining || isAttemptComplete) {
       return;
     }
-    const intervalId = setInterval(
-      () => dispatchAttempt({ type: "secondPassed" }),
-      1000
-    );
+    const intervalId = setInterval(() => {
+      setAttempt((previous) => ({
+        ...previous,
+        timeRemaining: previous.timeRemaining.minus({ second: 1 }),
+      }));
+    }, 1000);
     return (): void => {
       clearTimeout(intervalId);
     };
@@ -121,16 +69,11 @@ export default function AttemptProblem({
     (x: number, y: number, newStatus: AttemptCellStatus) => {
       const cellNeedsMark = problem.image[x][y];
       if (!cellNeedsMark && newStatus) {
-        dispatchAttempt({ type: "incorrectMark" });
+        setAttempt((previous) => incorrectMark(previous));
         setActiveTool(undefined);
         return;
       }
-      dispatchAttempt({
-        type: "progress",
-        x,
-        y,
-        newStatus,
-      });
+      setAttempt((previous) => progressAttempt(previous, x, y, newStatus));
     },
     [problem]
   );
