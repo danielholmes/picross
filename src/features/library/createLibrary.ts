@@ -1,12 +1,18 @@
-import * as allIcons from "react-icons/hi";
+import { GoFile } from "react-icons/go";
 import { ProblemLibrary } from "./model";
 
+const allIcons = [
+  {
+    name: "File",
+    Component: GoFile,
+  },
+];
+
 export default function createLibrary(): ProblemLibrary {
-  return Object.entries(allIcons).map(([name, Component]) => {
-    const readableName = name.substr(2);
+  return allIcons.map(({ name, Component }) => {
     return {
       id: name,
-      name: readableName,
+      name,
       Component,
     };
   });

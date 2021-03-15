@@ -6,6 +6,7 @@ import AttemptProblem from "../../components/attempt";
 import { useAppState } from "../../app";
 import { createProblemFromSource } from "../library";
 import { Problem } from "../../model";
+import Solution from "../../components/solution";
 
 export default function RandomProblem(): JSX.Element {
   const [problem, setProblem] = useState<undefined | Problem>(undefined);
@@ -21,7 +22,10 @@ export default function RandomProblem(): JSX.Element {
   };
 
   return problem ? (
-    <AttemptProblem problem={problem} onSuccess={onAttemptSuccess} />
+    <div>
+      <AttemptProblem problem={problem} onSuccess={onAttemptSuccess} />
+      <Solution problem={problem} />
+    </div>
   ) : (
     <SetupRandomProblem onComplete={onSetupComplete} />
   );
