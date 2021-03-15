@@ -41,6 +41,12 @@ npm run test
  - https://fontmeme.com/fonts/pixel-icons-compilation-font/
  
 
+## TODO
+
+ - Show success or fail status for attempt.
+ - Landing screen with random pixels, random image, library (with completion status).
+
+
 ## Appendix
 
 For deployment - <https://joshuatz.com/posts/2021/deploy-preact-from-subdirectory/>
