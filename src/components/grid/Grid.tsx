@@ -1,31 +1,42 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import range from "lodash/range";
+import { Problem } from "../../model";
 
 interface GridProps {
-  readonly width: number;
-  readonly height: number;
+  readonly problem: Problem;
   readonly renderCell: (x: number, y: number) => JSX.Element;
 }
 
-function Grid({ width, height, renderCell }: GridProps): JSX.Element {
-  const col = range(0, height);
+function Grid({ problem, renderCell }: GridProps): JSX.Element {
+  const col = range(0, problem.image[0].length);
   return (
     <div className="attempt-grid">
-      <div className="attempt-col">
-        <div className="attempt-cell" />
-        {col.map((y) => (
-          <div key={y} className="attempt-cell">
-            {y + 1}
+      <div className="attempt-x-hints">
+        {problem.xHints.map((xHint, x) => (
+          <div key={x} className="attempt-x-hint">
+            {xHint.map((hint, i) => (
+              <div key={i}>{hint}</div>
+            ))}
           </div>
         ))}
       </div>
-      {range(0, width).map((x) => (
-        <div key={x} className="attempt-col">
-          <div className="attempt-cell">{x + 1}</div>
-          {col.map((y) => renderCell(x, y))}
+      <div className="attempt-cols">
+        <div className="attempt-col">
+          {problem.yHints.map((yHint, y) => (
+            <div key={y} className="attempt-y-hint">
+              {yHint.map((hint, i) => (
+                <div key={i}>{hint}</div>
+              ))}
+            </div>
+          ))}
         </div>
-      ))}
+        {range(0, problem.image.length).map((x) => (
+          <div key={x} className="attempt-col">
+            {col.map((y) => renderCell(x, y))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

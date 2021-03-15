@@ -1,4 +1,4 @@
-.attempt-grid {
+.attempt-cols {
 	display: flex;
 	flex-direction: row;
 }
@@ -6,6 +6,31 @@
 .attempt-col {
 	flex-direction: column;
 	display: flex;
+}
+
+.attempt-x-hints {
+	display: flex;
+	align-self: flex-end;
+}
+
+.attempt-x-hint {
+	width: 30px;
+	flex-direction: column;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+.attempt-x-hint > div {
+	padding: 6px;
+}
+.attempt-y-hint {
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+.attempt-y-hint > div {
+	padding: 6px;
 }
 
 .attempt-cell {

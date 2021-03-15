@@ -34,6 +34,13 @@ npm run test
 ```
 
 
+## Icons to Possibly Use
+
+ - https://www.123rf.com/photo_4378683_pixel-icon-set-vector.html
+ - https://www.123rf.com/photo_15118439_pixel-icons-on-brown.html
+ - https://fontmeme.com/fonts/pixel-icons-compilation-font/
+ - 
+
 ## Appendix
 
 For deployment - <https://joshuatz.com/posts/2021/deploy-preact-from-subdirectory/>

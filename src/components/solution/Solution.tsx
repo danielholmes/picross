@@ -12,16 +12,10 @@ interface SolutionProps {
 export default function Solution({ problem }: SolutionProps): JSX.Element {
   const renderCell = useCallback(
     (x: number, y: number) => {
-      return <AttemptCell onChange={noop} status={problem[x][y]} />;
+      return <AttemptCell onChange={noop} status={problem.image[x][y]} />;
     },
     [problem]
   );
 
-  return (
-    <Grid
-      width={problem.length}
-      height={problem[0].length}
-      renderCell={renderCell}
-    />
-  );
+  return <Grid problem={problem} renderCell={renderCell} />;
 }

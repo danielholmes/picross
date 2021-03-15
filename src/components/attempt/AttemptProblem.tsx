@@ -43,11 +43,7 @@ export default function AttemptProblem({
 
   return (
     <div>
-      <Grid
-        width={problem.length}
-        height={problem[0].length}
-        renderCell={renderCell}
-      />
+      <Grid problem={problem} renderCell={renderCell} />
       <em>Hold alt/command key and click to mark with a cross</em>
     </div>
   );
