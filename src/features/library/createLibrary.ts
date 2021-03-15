@@ -1,5 +1,5 @@
 import { GoSearch, GoLightBulb } from "react-icons/go";
-import { CgAnchor, CgKey } from "react-icons/cg";
+import { CgAnchor } from "react-icons/cg";
 import {
   WiCloud,
   WiDaySunny,
@@ -41,10 +41,6 @@ const allIcons = [
   {
     name: "Anchor",
     Component: CgAnchor,
-  },
-  {
-    name: "Key",
-    Component: CgKey,
   },
 ];
 
