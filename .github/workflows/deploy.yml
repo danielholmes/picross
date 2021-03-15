@@ -26,8 +26,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
-#      - name: Clean unused files
-#        run: "find . -not -name 'build/**/*' -print0 | xargs -0 -I {} rm -rf {}"
+      - name: Clean unused files
+        run: "find . -not -name 'build' -depth 1 -print0 | xargs -0 -I {} rm -rf {}"
       - name: Commit changes
         uses: EndBug/add-and-commit@v7
         with:
