@@ -8,18 +8,21 @@ export default function progressAttempt(
 ): ProblemAttempt {
   if (
     updateX < 0 ||
-    updateX >= attempt.length ||
+    updateX >= attempt.marks.length ||
     updateY < 0 ||
-    updateY >= attempt[0].length
+    updateY >= attempt.marks[0].length
   ) {
     throw new Error("Invalid coordinates");
   }
-  return attempt.map((col, x) =>
-    col.map((s, y) => {
-      if (x === updateX && y === updateY) {
-        return status;
-      }
-      return s;
-    })
-  );
+  return {
+    ...attempt,
+    marks: attempt.marks.map((col, x) =>
+      col.map((s, y) => {
+        if (x === updateX && y === updateY) {
+          return status;
+        }
+        return s;
+      })
+    ),
+  };
 }

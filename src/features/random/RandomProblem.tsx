@@ -25,10 +25,17 @@ export default function RandomProblem(): JSX.Element {
   const onAttemptSuccess = (): void => {
     console.log("onAttemptSuccess");
   };
+  const onAttemptFail = (): void => {
+    console.log("onAttemptFail");
+  };
 
   return problem ? (
     <div>
-      <AttemptProblem problem={problem} onSuccess={onAttemptSuccess} />
+      <AttemptProblem
+        problem={problem}
+        onSuccess={onAttemptSuccess}
+        onFail={onAttemptFail}
+      />
       <Solution problem={problem} />
     </div>
   ) : (
