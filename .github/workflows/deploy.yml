@@ -26,15 +26,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
-      - name: Clean unused files
-        run: "find . -not \\( -name 'build' -o -name '.git' -o -name '.' \\) -maxdepth 1 -print0 | xargs -0 -I {} rm -rf {}"
-      - name: See contents
-        run: "ls -la ."
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v7
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
-          author_name: Daniel Holmes
-          author_email: daniel@danielholmes.org
-          message: Build site
           branch: build
-          add: "build/*"
+          folder: build
