@@ -8,28 +8,52 @@ interface AttemptCellProps {
   readonly onChange: (status: AttemptCellStatus) => void;
 }
 
-function AttemptCell({ status, onChange }: AttemptCellProps): h.JSX.Element {
-  const onClick = (e: MouseEvent): void => {
-    if (e.metaKey) {
-      if (status === false) {
-        onChange(undefined);
-        return;
-      }
-      onChange(false);
-      return;
+function getNewStatus(
+  status: AttemptCellStatus,
+  e: MouseEvent
+): AttemptCellStatus {
+  if (e.metaKey) {
+    if (status === false) {
+      return undefined;
     }
+    return false;
+  }
 
-    if (status === true) {
-      onChange(undefined);
-      return;
+  if (status === true) {
+    return undefined;
+  }
+
+  return true;
+}
+
+function AttemptCell({ status, onChange }: AttemptCellProps): h.JSX.Element {
+  const onMouseClick = (e: MouseEvent): void => {
+    const newStatus = getNewStatus(status, e);
+    if (newStatus !== status) {
+      onChange(newStatus);
     }
-    onChange(true);
   };
+
+  // TODO: Work on interaction:
+  // - interaction type depends on mouse down
+  //    - selecting unselected means select tool
+  //    - selecting selected means unselect tool
+  //    - equivalents for mark cross
+
+  // const onMouseEnter = (e: MouseEvent): void => {
+  //   if (e.buttons === 1) {
+  //     const newStatus = getNewStatus(status, e);
+  //     if (newStatus !== status) {
+  //       onChange(newStatus);
+  //     }
+  //   }
+  // }
+
   return (
     <button
       type="button"
       className={classNames("attempt-cell", { "attempt-selected": status })}
-      onClick={onClick}
+      onClick={onMouseClick}
     >
       {status === false && "✗"}
     </button>
