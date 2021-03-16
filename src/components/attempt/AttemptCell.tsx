@@ -4,6 +4,7 @@ import { memo } from "preact/compat";
 import { AttemptCellStatus } from "../../model";
 
 type AttemptCellProps = {
+  readonly className?: string;
   readonly status: AttemptCellStatus;
   readonly onMouseDown?: (e: MouseEvent) => void;
   readonly onMouseEnter?: (e: MouseEvent) => void;
@@ -11,6 +12,7 @@ type AttemptCellProps = {
 };
 
 function AttemptCell({
+  className,
   status,
   onMouseEnter,
   onMouseDown,
@@ -19,7 +21,11 @@ function AttemptCell({
   return (
     <button
       type="button"
-      className={classNames("attempt-cell", { "attempt-selected": status })}
+      className={classNames(
+        "attempt-cell",
+        { "attempt-selected": status },
+        className
+      )}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
       disabled={disabled}

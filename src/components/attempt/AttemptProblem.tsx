@@ -1,6 +1,7 @@
 import { h, JSX } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import noop from "lodash/noop";
+import classNames from "classnames";
 import {
   AttemptCellStatus,
   incorrectMark,
@@ -17,6 +18,17 @@ interface AttemptProblemProps {
   readonly onSuccess: () => void;
   readonly onFail: () => void;
 }
+
+interface NotDraggingState {
+  readonly type: "not-dragging";
+}
+
+interface ActiveDraggingState {
+  readonly type: "dragging";
+  readonly tool: AttemptCellStatus;
+}
+
+type DraggingState = NotDraggingState | ActiveDraggingState;
 
 export default function AttemptProblem({
   problem,
@@ -65,55 +77,99 @@ export default function AttemptProblem({
     };
   }, [hasTimeRemaining, isAttemptComplete]);
 
+  // Modifier for unmark
+  const [isUnmarkActive, setUnmarkActive] = useState(false);
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Meta") {
+        setUnmarkActive(true);
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "Meta") {
+        setUnmarkActive(false);
+      }
+    };
+    const onCancelUnmark = () => {
+      setUnmarkActive(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("focus", onCancelUnmark);
+    return (): void => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("focus", onCancelUnmark);
+    };
+  }, []);
+
   // Tool and modifying attempt
-  const [activeTool, setActiveTool] = useState<AttemptCellStatus>(undefined);
+  const [dragging, setDragging] = useState<DraggingState>({
+    type: "not-dragging",
+  });
   const tryAndApplyMark = useCallback(
     (x: number, y: number, newStatus: AttemptCellStatus) => {
       const cellNeedsMark = problem.image[x][y];
       if (!cellNeedsMark && newStatus) {
         setAttempt((previous) => incorrectMark(previous));
-        setActiveTool(undefined);
+        setDragging({ type: "not-dragging" });
         return;
       }
       setAttempt((previous) => progressAttempt(previous, x, y, newStatus));
     },
     [problem]
   );
-  const onCellMouseDown = useCallback(
-    (x: number, y: number, e: MouseEvent): void => {
-      const currentStatus = attempt.marks[x][y];
-      const newStatus = !e.metaKey;
 
-      setActiveTool(newStatus);
-      if (currentStatus !== newStatus) {
-        tryAndApplyMark(x, y, newStatus);
+  // Start using tool
+  const onCellMouseDown = useCallback(
+    (x: number, y: number): void => {
+      const currentStatus = attempt.marks[x][y];
+      const desiredTool = !isUnmarkActive;
+
+      if (currentStatus === desiredTool) {
+        setDragging({
+          type: "dragging",
+          tool: undefined,
+        });
+        tryAndApplyMark(x, y, undefined);
+        return;
       }
+
+      setDragging({
+        type: "dragging",
+        tool: desiredTool,
+      });
+      tryAndApplyMark(x, y, desiredTool);
     },
-    [attempt, tryAndApplyMark]
+    [attempt, tryAndApplyMark, isUnmarkActive]
   );
   const onCellMouseEnter = useCallback(
     (x: number, y: number): void => {
-      if (activeTool === undefined) {
+      if (dragging.type !== "dragging") {
         throw new Error("Invalid state");
       }
 
       const currentStatus = attempt.marks[x][y];
       // No change
-      if (currentStatus === activeTool) {
+      if (currentStatus === dragging.tool) {
         return;
       }
 
-      tryAndApplyMark(x, y, activeTool);
+      tryAndApplyMark(x, y, dragging.tool);
     },
-    [attempt, activeTool, tryAndApplyMark]
+    [attempt, dragging, tryAndApplyMark]
   );
+
+  // Finish using tool
   useEffect(() => {
-    if (!activeTool) {
+    if (dragging.type !== "dragging") {
       return noop;
     }
 
     const onCancelTool = (): void => {
-      setActiveTool(undefined);
+      setDragging({
+        type: "not-dragging",
+      });
     };
 
     window.addEventListener("mouseup", onCancelTool);
@@ -122,27 +178,44 @@ export default function AttemptProblem({
       window.addEventListener("mouseup", onCancelTool);
       window.addEventListener("blur", onCancelTool);
     };
-  }, [activeTool]);
+  }, [dragging]);
 
   // General UI
   const disabled = !hasTimeRemaining || isAttemptComplete;
 
   // Render attempt cell
+  const cellClassName = classNames({
+    "clear-tool": dragging.type === "dragging" && dragging.tool === undefined,
+    "unmark-tool":
+      (dragging.type === "dragging" && dragging.tool === false) ||
+      (dragging.type === "not-dragging" && isUnmarkActive),
+    "mark-tool":
+      (dragging.type === "dragging" && dragging.tool === true) ||
+      (dragging.type === "not-dragging" && !isUnmarkActive),
+  });
   const renderCell = useCallback(
     (x: number, y: number) => (
       <AttemptCell
         key={y}
         status={attempt.marks[x][y]}
-        onMouseDown={(e: MouseEvent): void => onCellMouseDown(x, y, e)}
+        onMouseDown={(): void => onCellMouseDown(x, y)}
         onMouseEnter={
-          activeTool !== undefined
+          dragging.type === "dragging"
             ? (): void => onCellMouseEnter(x, y)
             : undefined
         }
         disabled={disabled}
+        className={cellClassName}
       />
     ),
-    [attempt, activeTool, onCellMouseDown, onCellMouseEnter, disabled]
+    [
+      attempt,
+      cellClassName,
+      dragging,
+      onCellMouseDown,
+      onCellMouseEnter,
+      disabled,
+    ]
   );
 
   return (

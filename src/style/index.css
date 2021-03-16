@@ -1,3 +1,13 @@
+.unmark-tool {
+	cursor: pointer;
+}
+.mark-tool {
+	cursor: crosshair;
+}
+.clear-tool {
+	cursor: no-drop;
+}
+
 .attempt-cols {
 	display: flex;
 	flex-direction: row;
