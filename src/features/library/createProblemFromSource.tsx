@@ -1,8 +1,9 @@
 import { h, JSX, render } from "preact";
-import { ProblemSource } from "./model";
 import html2Canvas from "html2canvas";
-import { Problem } from "../../model";
 import range from "lodash/range";
+import { ProblemSource } from "./model";
+import { Problem } from "../../model";
+import { createMatrixWithFactory } from "../../utils/matrix";
 
 const channelsPerPixel = 4;
 const whiteChannelValue = 255;
@@ -41,22 +42,22 @@ export default async function createProblemFromSource(
 
   const data = ctx.getImageData(0, 0, size, size);
   const widthChannels = data.width * channelsPerPixel;
-  const xIndices = range(0, data.width);
-  const yIndices = range(0, data.height);
-  const image = xIndices.map((x) =>
-    yIndices.map((y) => {
-      const pixelI = x * channelsPerPixel + y * widthChannels;
-      return (
-        data.data[pixelI] !== whiteChannelValue ||
-        data.data[pixelI + 1] !== whiteChannelValue ||
-        data.data[pixelI + 2] !== whiteChannelValue
-      );
-    })
-  );
 
+  const image = createMatrixWithFactory(data.width, data.height, (x, y) => {
+    const pixelI = x * channelsPerPixel + y * widthChannels;
+    return (
+      data.data[pixelI] !== whiteChannelValue ||
+      data.data[pixelI + 1] !== whiteChannelValue ||
+      data.data[pixelI + 2] !== whiteChannelValue
+    );
+  });
+
+  const xIndices = range(0, data.width);
   return {
     image,
     xHints: xIndices.map((x) => getHints(image[x])),
-    yHints: yIndices.map((y) => getHints(xIndices.map((x) => image[x][y]))),
+    yHints: range(0, data.height).map((y) =>
+      getHints(xIndices.map((x) => image[x][y]))
+    ),
   };
 }

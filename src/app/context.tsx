@@ -1,6 +1,6 @@
 import { JSX, h, ComponentChildren, createContext } from "preact";
-import { AppState } from "./state";
 import { useCallback, useContext, useState } from "preact/hooks";
+import { AppState } from "./state";
 import { createLibrary } from "../features/library";
 
 type AppDispatch = () => void;
@@ -24,7 +24,7 @@ export function AppStateProvider({
     results: [],
   }));
   const dispatch = useCallback(() => {
-    console.log("TODO: Dispatch");
+    // console.log("TODO: Dispatch");
   }, []);
   return (
     <Context.Provider value={{ state, dispatch }}>{children}</Context.Provider>

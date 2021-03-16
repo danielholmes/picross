@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
-import { AttemptCellStatus } from "../../model";
 import classNames from "classnames";
 import { memo } from "preact/compat";
+import { AttemptCellStatus } from "../../model";
 
 type AttemptCellProps = {
   readonly status: AttemptCellStatus;

@@ -33,6 +33,10 @@ npm run ts
 npm run test
 ```
 
+## Deployment
+
+Done via Github Actions which will deploy the site to <https://picross.danielholmes.org/>.
+
 
 ## Icons to Possibly Use
 

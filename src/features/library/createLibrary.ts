@@ -45,11 +45,9 @@ const allIcons = [
 ];
 
 export default function createLibrary(): ProblemLibrary {
-  return allIcons.map(({ name, Component }) => {
-    return {
-      id: name,
-      name,
-      Component,
-    };
-  });
+  return allIcons.map(({ name, Component }) => ({
+    id: name,
+    name,
+    Component,
+  }));
 }

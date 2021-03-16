@@ -1,17 +1,18 @@
 import { Duration, DurationObject } from "luxon";
+import { Matrix } from "./utils/matrix";
 
 export type AttemptCellStatus = boolean | undefined;
 
 export interface ProblemAttempt {
   readonly timeRemaining: Duration;
   readonly incorrectMarks: number;
-  readonly marks: ReadonlyArray<ReadonlyArray<AttemptCellStatus>>;
+  readonly marks: Matrix<AttemptCellStatus>;
 }
 
 export interface Problem {
-  readonly image: ReadonlyArray<ReadonlyArray<boolean>>;
-  readonly xHints: ReadonlyArray<ReadonlyArray<number>>;
-  readonly yHints: ReadonlyArray<ReadonlyArray<number>>;
+  readonly image: Matrix<boolean>;
+  readonly xHints: Matrix<number>;
+  readonly yHints: Matrix<number>;
 }
 
 export function isComplete(

@@ -10,6 +10,7 @@ interface GridProps {
 
 function Grid({ problem, renderCell }: GridProps): JSX.Element {
   const col = range(0, problem.image[0].length);
+  /* eslint-disable react/no-array-index-key */
   return (
     <div className="attempt-grid">
       <div className="attempt-x-hints">
@@ -39,6 +40,7 @@ function Grid({ problem, renderCell }: GridProps): JSX.Element {
       </div>
     </div>
   );
+  /* eslint-enable react/no-array-index-key */
 }
 
 export default memo(Grid);

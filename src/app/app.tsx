@@ -5,7 +5,7 @@ import { RandomProblem } from "../features/random";
 export default function App(): JSX.Element {
   return (
     <AppStateProvider>
-      {/*<Landing />*/}
+      {/* <Landing /> */}
       <RandomProblem />
     </AppStateProvider>
   );

@@ -1,4 +1,6 @@
 import { h, JSX } from "preact";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import noop from "lodash/noop";
 import {
   AttemptCellStatus,
   incorrectMark,
@@ -6,7 +8,6 @@ import {
   Problem,
 } from "../../model";
 import AttemptCell from "./AttemptCell";
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import createNewAttempt from "./createNewAttempt";
 import progressAttempt from "./progressAttempt";
 import Grid from "../grid";
@@ -32,9 +33,10 @@ export default function AttemptProblem({
   }, [problem]);
   const { timeRemaining, marks } = attempt;
   const hasTimeRemaining = timeRemaining.as("seconds");
-  const isAttemptComplete = useMemo(() => {
-    return isComplete(problem, marks);
-  }, [problem, marks]);
+  const isAttemptComplete = useMemo(() => isComplete(problem, marks), [
+    problem,
+    marks,
+  ]);
 
   // Complete state
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function AttemptProblem({
   // Counting down timer
   useEffect(() => {
     if (!hasTimeRemaining || isAttemptComplete) {
-      return;
+      return noop;
     }
     const intervalId = setInterval(() => {
       setAttempt((previous) => ({
@@ -107,7 +109,7 @@ export default function AttemptProblem({
   );
   useEffect(() => {
     if (!activeTool) {
-      return;
+      return noop;
     }
 
     const onCancelTool = (): void => {
@@ -127,21 +129,19 @@ export default function AttemptProblem({
 
   // Render attempt cell
   const renderCell = useCallback(
-    (x: number, y: number) => {
-      return (
-        <AttemptCell
-          key={y}
-          status={attempt.marks[x][y]}
-          onMouseDown={(e: MouseEvent): void => onCellMouseDown(x, y, e)}
-          onMouseEnter={
-            activeTool !== undefined
-              ? (): void => onCellMouseEnter(x, y)
-              : undefined
-          }
-          disabled={disabled}
-        />
-      );
-    },
+    (x: number, y: number) => (
+      <AttemptCell
+        key={y}
+        status={attempt.marks[x][y]}
+        onMouseDown={(e: MouseEvent): void => onCellMouseDown(x, y, e)}
+        onMouseEnter={
+          activeTool !== undefined
+            ? (): void => onCellMouseEnter(x, y)
+            : undefined
+        }
+        disabled={disabled}
+      />
+    ),
     [attempt, activeTool, onCellMouseDown, onCellMouseEnter, disabled]
   );
 
