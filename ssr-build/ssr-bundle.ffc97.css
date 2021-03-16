@@ -1,3 +1,13 @@
+.unmark-tool {
+	cursor: pointer;
+}
+.mark-tool {
+	cursor: crosshair;
+}
+.clear-tool {
+	cursor: no-drop;
+}
+
 .attempt-cols {
 	display: -ms-flexbox;
 	display: flex;
@@ -62,4 +72,4 @@
 }
 
 
-/*# sourceMappingURL=ssr-bundle.b1232.css.map*/
+/*# sourceMappingURL=ssr-bundle.ffc97.css.map*/
