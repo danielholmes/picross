@@ -1,6 +1,7 @@
 import { h, JSX } from "preact";
 import classNames from "classnames";
 import { memo } from "preact/compat";
+import { Duration } from "luxon";
 import { AttemptCellStatus } from "../../model";
 
 type AttemptCellProps = {
@@ -9,6 +10,7 @@ type AttemptCellProps = {
   readonly onMouseDown?: (e: MouseEvent) => void;
   readonly onMouseEnter?: (e: MouseEvent) => void;
   readonly disabled?: boolean;
+  readonly penalty?: Duration;
 };
 
 function AttemptCell({
@@ -17,6 +19,7 @@ function AttemptCell({
   onMouseEnter,
   onMouseDown,
   disabled,
+  penalty,
 }: AttemptCellProps): JSX.Element {
   return (
     <button
@@ -30,7 +33,8 @@ function AttemptCell({
       onMouseEnter={onMouseEnter}
       disabled={disabled}
     >
-      {status === false && "✗"}
+      {!penalty && status === false && "✗"}
+      {penalty && `-${penalty.as("minutes")}`}
     </button>
   );
 }

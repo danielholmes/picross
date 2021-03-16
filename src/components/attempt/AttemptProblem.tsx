@@ -2,8 +2,10 @@ import { h, JSX } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import noop from "lodash/noop";
 import classNames from "classnames";
+import { Duration } from "luxon";
 import {
   AttemptCellStatus,
+  getIncorrectMarkPenalty,
   incorrectMark,
   isComplete,
   Problem,
@@ -30,6 +32,12 @@ interface ActiveDraggingState {
 
 type DraggingState = NotDraggingState | ActiveDraggingState;
 
+interface IncorrectMark {
+  readonly x: number;
+  readonly y: number;
+  readonly penalty: Duration;
+}
+
 export default function AttemptProblem({
   problem,
   onFail,
@@ -37,18 +45,36 @@ export default function AttemptProblem({
 }: AttemptProblemProps): JSX.Element {
   // Attempt state
   const [attempt, setAttempt] = useState(() => createNewAttempt(problem));
-
-  useEffect(() => {
-    // Unfortunately this results in running twice (the state initialiser).
-    // Maybe can skip on first run?
-    setAttempt(createNewAttempt(problem));
-  }, [problem]);
-  const { timeRemaining, marks } = attempt;
+  const { incorrectMarks, timeRemaining, marks } = attempt;
   const hasTimeRemaining = timeRemaining.as("seconds");
   const isAttemptComplete = useMemo(() => isComplete(problem, marks), [
     problem,
     marks,
   ]);
+
+  // Incorrect
+  const [incorrect, setIncorrect] = useState<IncorrectMark | undefined>(
+    undefined
+  );
+  const hasIncorrect = !!incorrect;
+  useEffect(() => {
+    if (!hasIncorrect) {
+      return noop;
+    }
+    const timeoutId = setTimeout(() => setIncorrect(undefined), 1500);
+    return (): void => {
+      clearTimeout(timeoutId);
+      setIncorrect(undefined);
+    };
+  }, [hasIncorrect]);
+
+  // New problem
+  useEffect(() => {
+    // Unfortunately this results in running twice (the state initialiser).
+    // Maybe can skip on first run?
+    setAttempt(createNewAttempt(problem));
+    setIncorrect(undefined);
+  }, [problem]);
 
   // Complete state
   useEffect(() => {
@@ -111,13 +137,16 @@ export default function AttemptProblem({
     (x: number, y: number, newStatus: AttemptCellStatus) => {
       const cellNeedsMark = problem.image[x][y];
       if (!cellNeedsMark && newStatus) {
+        // Not the best - this incorrect mark could be different from the state setter
+        const penalty = getIncorrectMarkPenalty(incorrectMarks);
         setAttempt((previous) => incorrectMark(previous));
         setDragging({ type: "not-dragging" });
+        setIncorrect({ x, y, penalty });
         return;
       }
       setAttempt((previous) => progressAttempt(previous, x, y, newStatus));
     },
-    [problem]
+    [problem, incorrectMarks]
   );
 
   // Start using tool
@@ -181,7 +210,7 @@ export default function AttemptProblem({
   }, [dragging]);
 
   // General UI
-  const disabled = !hasTimeRemaining || isAttemptComplete;
+  const disabled = !hasTimeRemaining || isAttemptComplete || hasIncorrect;
 
   // Render attempt cell
   const cellClassName = classNames({
@@ -206,9 +235,15 @@ export default function AttemptProblem({
         }
         disabled={disabled}
         className={cellClassName}
+        penalty={
+          incorrect && incorrect.x === x && incorrect.y === y
+            ? incorrect.penalty
+            : undefined
+        }
       />
     ),
     [
+      incorrect,
       attempt,
       cellClassName,
       dragging,

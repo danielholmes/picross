@@ -24,7 +24,7 @@ export function isComplete(
   );
 }
 
-function getIncorrectMarkPenalty(
+function getIncorrectMarkPenaltyDurationObject(
   previousIncorrectMarks: number
 ): DurationObject {
   if (previousIncorrectMarks === 0) {
@@ -36,9 +36,21 @@ function getIncorrectMarkPenalty(
   return { minutes: 8 };
 }
 
+export function getIncorrectMarkPenalty(
+  previousIncorrectMarks: number
+): Duration {
+  const { minutes } = getIncorrectMarkPenaltyDurationObject(
+    previousIncorrectMarks
+  );
+  if (minutes === undefined) {
+    throw new Error("Unexpected duration format");
+  }
+  return Duration.fromMillis(minutes * 60 * 1000);
+}
+
 export function incorrectMark(attempt: ProblemAttempt): ProblemAttempt {
   const newRemaining = attempt.timeRemaining.minus(
-    getIncorrectMarkPenalty(attempt.incorrectMarks)
+    getIncorrectMarkPenaltyDurationObject(attempt.incorrectMarks)
   );
   return {
     ...attempt,
