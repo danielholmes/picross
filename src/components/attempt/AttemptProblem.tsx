@@ -227,7 +227,12 @@ export default function AttemptProblem({
       <AttemptCell
         key={y}
         status={attempt.marks[x][y]}
-        onMouseDown={(): void => onCellMouseDown(x, y)}
+        onMouseDown={(e): void => {
+          // Left click only
+          if (e.buttons === 1) {
+            onCellMouseDown(x, y);
+          }
+        }}
         onMouseEnter={
           dragging.type === "dragging"
             ? (): void => onCellMouseEnter(x, y)

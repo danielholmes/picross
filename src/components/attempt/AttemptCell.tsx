@@ -25,8 +25,8 @@ function AttemptCell({
     <button
       type="button"
       className={classNames(
-        "attempt-cell",
-        { "attempt-selected": status },
+        "problem-cell",
+        { "problem-selected": status },
         className
       )}
       onMouseDown={onMouseDown}

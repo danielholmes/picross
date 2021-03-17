@@ -12,20 +12,20 @@ function Grid({ problem, renderCell }: GridProps): JSX.Element {
   const col = range(0, problem.image[0].length);
   /* eslint-disable react/no-array-index-key */
   return (
-    <div className="attempt-grid">
-      <div className="attempt-x-hints">
+    <div className="problem-grid">
+      <div className="problem-x-hints">
         {problem.xHints.map((xHint, x) => (
-          <div key={x} className="attempt-x-hint">
+          <div key={x} className="problem-x-hint">
             {xHint.map((hint, i) => (
               <div key={i}>{hint}</div>
             ))}
           </div>
         ))}
       </div>
-      <div className="attempt-cols">
-        <div className="attempt-col">
+      <div className="problem-cols">
+        <div className="problem-col">
           {problem.yHints.map((yHint, y) => (
-            <div key={y} className="attempt-y-hint">
+            <div key={y} className="problem-y-hint">
               {yHint.map((hint, i) => (
                 <div key={i}>{hint}</div>
               ))}
@@ -33,7 +33,7 @@ function Grid({ problem, renderCell }: GridProps): JSX.Element {
           ))}
         </div>
         {range(0, problem.image.length).map((x) => (
-          <div key={x} className="attempt-col">
+          <div key={x} className="problem-col problem-numbers-col">
             {col.map((y) => renderCell(x, y))}
           </div>
         ))}
