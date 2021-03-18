@@ -47,8 +47,9 @@ Done via Github Actions which will deploy the site to <https://picross.danielhol
 
 ## TODO
 
+ - Show 0 for hints.
  - Show success or fail status for attempt.
- - Landing screen with random pixels, random image, library (with completion status).
+ - Option for AI instead of attempt.
 
 
 ## Appendix
