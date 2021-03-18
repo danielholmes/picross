@@ -4,9 +4,14 @@ import { Matrix } from "./utils/matrix";
 
 export type AttemptCellStatus = boolean | undefined;
 
+interface IncorrectMark {
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface ProblemAttempt {
   readonly timeRemaining: Duration;
-  readonly incorrectMarks: number;
+  readonly incorrectMarks: ReadonlyArray<IncorrectMark>;
   readonly marks: Matrix<AttemptCellStatus>;
 }
 
@@ -76,14 +81,17 @@ export function getIncorrectMarkPenalty(
   return Duration.fromMillis(minutes * 60 * 1000);
 }
 
-export function incorrectMark(attempt: ProblemAttempt): ProblemAttempt {
+export function incorrectMark(
+  attempt: ProblemAttempt,
+  mark: IncorrectMark
+): ProblemAttempt {
   const newRemaining = attempt.timeRemaining.minus(
-    getIncorrectMarkPenaltyDurationObject(attempt.incorrectMarks)
+    getIncorrectMarkPenaltyDurationObject(attempt.incorrectMarks.length)
   );
   return {
     ...attempt,
     timeRemaining:
       newRemaining.as("seconds") < 0 ? Duration.fromMillis(0) : newRemaining,
-    incorrectMarks: attempt.incorrectMarks + 1,
+    incorrectMarks: [...attempt.incorrectMarks, mark],
   };
 }

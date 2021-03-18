@@ -4,7 +4,7 @@ import { createMatrix } from "../../utils/matrix";
 
 export default function createNewAttempt(problem: Problem): ProblemAttempt {
   return {
-    incorrectMarks: 0,
+    incorrectMarks: [],
     timeRemaining: Duration.fromMillis(30 * 60 * 1000),
     marks: createMatrix(
       problem.image.length,
