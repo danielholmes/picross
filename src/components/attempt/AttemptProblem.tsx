@@ -255,6 +255,7 @@ export default function AttemptProblem({
   return (
     <div>
       <div>Time: {attempt.timeRemaining.toFormat("mm:ss")}</div>
+      <Grid problem={problem} renderCell={renderCell} />
       {completeStatus === "success" && (
         <div>
           <h5>Success</h5>
@@ -271,7 +272,6 @@ export default function AttemptProblem({
           </button>
         </div>
       )}
-      <Grid problem={problem} renderCell={renderCell} />
       <em>Hold alt/command key and click to mark with a cross</em>
       <button type="button" onClick={onCancel}>
         Cancel

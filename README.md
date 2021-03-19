@@ -47,7 +47,6 @@ Done via Github Actions which will deploy the site to <https://picross.danielhol
 
 ## TODO
 
- - Show success or fail status for attempt.
  - Option for AI instead of attempt.
 
 

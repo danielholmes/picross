@@ -10,7 +10,9 @@ interface SolutionProps {
 
 export default function Solution({ problem }: SolutionProps): JSX.Element {
   const renderCell = useCallback(
-    (x: number, y: number) => <AttemptCell status={problem.image[x][y]} />,
+    (x: number, y: number) => (
+      <AttemptCell status={problem.image[x][y] || undefined} disabled />
+    ),
     [problem]
   );
 

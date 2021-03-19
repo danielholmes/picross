@@ -4,24 +4,32 @@ import { AppStateProvider } from "./context";
 import AttemptProblem from "../components/attempt";
 import { Problem } from "../model";
 import Landing from "../features/landing";
+import AiAttempt from "../features/ai";
 
 export default function App(): JSX.Element {
-  const [problem, setProblem] = useState<Problem | undefined>(undefined);
+  const [setup, setSetup] = useState<
+    { problem: Problem; control: "ai" | "player" } | undefined
+  >(undefined);
   const onAttemptComplete = () => {
-    setProblem(undefined);
+    setSetup(undefined);
+  };
+
+  const onStart = (newProblem: Problem, control: "ai" | "player") => {
+    setSetup({ problem: newProblem, control });
   };
 
   return (
     <AppStateProvider>
-      {!problem && <Landing onStart={setProblem} />}
-      {problem && (
+      {!setup && <Landing onStart={onStart} />}
+      {setup?.control === "player" && (
         <AttemptProblem
-          problem={problem}
+          problem={setup.problem}
           onSuccess={onAttemptComplete}
           onFail={onAttemptComplete}
           onCancel={onAttemptComplete}
         />
       )}
+      {setup?.control === "ai" && <AiAttempt problem={setup.problem} />}
     </AppStateProvider>
   );
 }
