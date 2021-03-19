@@ -19,6 +19,7 @@ export default function App(): JSX.Element {
           problem={problem}
           onSuccess={onAttemptComplete}
           onFail={onAttemptComplete}
+          onCancel={onAttemptComplete}
         />
       )}
     </AppStateProvider>

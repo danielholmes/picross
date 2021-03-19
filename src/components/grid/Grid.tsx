@@ -23,6 +23,11 @@ function Grid({ problem, renderCell }: GridProps): JSX.Element {
         ))}
       </div>
       <div className="problem-cols">
+        {range(0, problem.image.length).map((x) => (
+          <div key={x} className="problem-col problem-numbers-col">
+            {col.map((y) => renderCell(x, y))}
+          </div>
+        ))}
         <div className="problem-col">
           {problem.yHints.map((yHint, y) => (
             <div key={y} className="problem-y-hint">
@@ -32,11 +37,6 @@ function Grid({ problem, renderCell }: GridProps): JSX.Element {
             </div>
           ))}
         </div>
-        {range(0, problem.image.length).map((x) => (
-          <div key={x} className="problem-col problem-numbers-col">
-            {col.map((y) => renderCell(x, y))}
-          </div>
-        ))}
       </div>
     </div>
   );

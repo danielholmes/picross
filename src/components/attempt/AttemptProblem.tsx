@@ -18,6 +18,7 @@ type AttemptProblemProps = {
   readonly problem: Problem;
   readonly onSuccess: () => void;
   readonly onFail: () => void;
+  readonly onCancel: () => void;
 };
 
 interface NotDraggingState {
@@ -35,15 +36,20 @@ export default function AttemptProblem({
   problem,
   onFail,
   onSuccess,
+  onCancel,
 }: AttemptProblemProps): JSX.Element {
   // Attempt state
   const [attempt, setAttempt] = useState(() => createNewAttempt(problem));
   const { incorrectMarks, timeRemaining, marks } = attempt;
-  const hasTimeRemaining = timeRemaining.as("seconds");
-  const isAttemptComplete = useMemo(() => isComplete(problem, marks), [
-    problem,
-    marks,
-  ]);
+  const completeStatus = useMemo(() => {
+    if (timeRemaining.as("seconds") === 0) {
+      return "fail";
+    }
+    if (isComplete(problem, marks)) {
+      return "success";
+    }
+    return "in-progress";
+  }, [problem, marks, timeRemaining]);
 
   // Incorrect
   const [showIncorrect, setShowIncorrect] = useState(false);
@@ -75,20 +81,9 @@ export default function AttemptProblem({
     setShowIncorrect(false);
   }, [problem]);
 
-  // Complete state
-  useEffect(() => {
-    if (!hasTimeRemaining) {
-      onFail();
-      return;
-    }
-    if (isAttemptComplete) {
-      onSuccess();
-    }
-  }, [hasTimeRemaining, isAttemptComplete, onFail, onSuccess]);
-
   // Counting down timer
   useEffect(() => {
-    if (!hasTimeRemaining || isAttemptComplete) {
+    if (completeStatus !== "in-progress") {
       return noop;
     }
     const intervalId = setInterval(() => {
@@ -100,7 +95,7 @@ export default function AttemptProblem({
     return (): void => {
       clearTimeout(intervalId);
     };
-  }, [hasTimeRemaining, isAttemptComplete]);
+  }, [completeStatus]);
 
   // Modifier for unmark
   const [isUnmarkActive, setUnmarkActive] = useState(false);
@@ -207,7 +202,7 @@ export default function AttemptProblem({
   }, [dragging]);
 
   // General UI
-  const disabled = !hasTimeRemaining || isAttemptComplete || showIncorrect;
+  const disabled = completeStatus !== "in-progress" || showIncorrect;
 
   // Render attempt cell
   const cellClassName = classNames({
@@ -260,8 +255,27 @@ export default function AttemptProblem({
   return (
     <div>
       <div>Time: {attempt.timeRemaining.toFormat("mm:ss")}</div>
+      {completeStatus === "success" && (
+        <div>
+          <h5>Success</h5>
+          <button type="button" onClick={onSuccess}>
+            Continue
+          </button>
+        </div>
+      )}
+      {completeStatus === "fail" && (
+        <div>
+          <h5>Fail</h5>
+          <button type="button" onClick={onFail}>
+            Continue
+          </button>
+        </div>
+      )}
       <Grid problem={problem} renderCell={renderCell} />
       <em>Hold alt/command key and click to mark with a cross</em>
+      <button type="button" onClick={onCancel}>
+        Cancel
+      </button>
     </div>
   );
 }

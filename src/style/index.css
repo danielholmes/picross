@@ -18,8 +18,8 @@
 	display: flex;
 }
 
-.problem-col.problem-numbers-col:nth-child(6),
-.problem-col.problem-numbers-col:nth-child(11){
+.problem-col.problem-numbers-col:nth-child(5),
+.problem-col.problem-numbers-col:nth-child(10){
 	border-right: 2px solid black;
 }
 .problem-col.problem-numbers-col .problem-cell:nth-child(5),
