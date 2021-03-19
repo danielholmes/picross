@@ -22,7 +22,7 @@ export interface Problem {
 }
 
 function getHints(imageLine: ReadonlyArray<boolean>): ReadonlyArray<number> {
-  return imageLine.reduce((accu, pixel, i) => {
+  const presentHints = imageLine.reduce((accu, pixel, i) => {
     if (!pixel) {
       return accu;
     }
@@ -35,6 +35,10 @@ function getHints(imageLine: ReadonlyArray<boolean>): ReadonlyArray<number> {
     }
     return [...accu, 1];
   }, [] as ReadonlyArray<number>);
+  if (presentHints.length === 0) {
+    return [0];
+  }
+  return presentHints;
 }
 
 export function createProblemFromImage(image: Matrix<boolean>): Problem {
