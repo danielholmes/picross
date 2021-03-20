@@ -36,18 +36,16 @@ npm run test
 ## Deployment
 
 Done via Github Actions which will deploy the site to <https://picross.danielholmes.org/>.
-
-
-## Icons to Possibly Use
-
- - https://www.123rf.com/photo_4378683_pixel-icon-set-vector.html
- - https://www.123rf.com/photo_15118439_pixel-icons-on-brown.html
- - https://fontmeme.com/fonts/pixel-icons-compilation-font/
  
 
 ## TODO
 
- - Option for AI instead of attempt.
+ - AI implementation.
+ - Use a UI framework and/or proper graphic treatment.
+ - Find some proper images to use.
+    - https://www.123rf.com/photo_4378683_pixel-icon-set-vector.html
+    - https://www.123rf.com/photo_15118439_pixel-icons-on-brown.html
+    - https://fontmeme.com/fonts/pixel-icons-compilation-font/
 
 
 ## Appendix
