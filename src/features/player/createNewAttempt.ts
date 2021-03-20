@@ -1,8 +1,11 @@
 import { Duration } from "luxon";
-import { Problem, ProblemAttempt } from "../../model";
+import { Problem } from "../../model";
 import { createMatrix } from "../../utils/matrix";
+import { PlayerProblemAttempt } from "./model";
 
-export default function createNewAttempt(problem: Problem): ProblemAttempt {
+export default function createNewAttempt(
+  problem: Problem
+): PlayerProblemAttempt {
   return {
     incorrectMarks: [],
     timeRemaining: Duration.fromMillis(30 * 60 * 1000),

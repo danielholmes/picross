@@ -2,16 +2,12 @@ import { h, JSX } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import noop from "lodash/noop";
 import classNames from "classnames";
-import {
-  AttemptCellStatus,
-  incorrectMark,
-  isComplete,
-  Problem,
-} from "../../model";
+import { AttemptCellStatus, isComplete, Problem } from "../../model";
+import { incorrectMark } from "./model";
 import AttemptCell from "./AttemptCell";
 import createNewAttempt from "./createNewAttempt";
 import progressAttempt from "./progressAttempt";
-import Grid from "../grid";
+import Grid from "../../components/grid";
 
 type AttemptProblemProps = {
   readonly problem: Problem;

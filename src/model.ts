@@ -1,4 +1,3 @@
-import { Duration } from "luxon";
 import range from "lodash/range";
 import { Matrix } from "./utils/matrix";
 
@@ -8,17 +7,6 @@ export type AttemptCellStatus = ProblemCellStatus | false;
 export interface ProblemCoordinate {
   readonly x: number;
   readonly y: number;
-}
-
-interface IncorrectMark {
-  readonly position: ProblemCoordinate;
-  readonly penalty: Duration;
-}
-
-export interface ProblemAttempt {
-  readonly timeRemaining: Duration;
-  readonly incorrectMarks: ReadonlyArray<IncorrectMark>;
-  readonly marks: Matrix<AttemptCellStatus>;
 }
 
 export interface Problem {
@@ -64,34 +52,9 @@ export function createProblemFromImage(image: Matrix<boolean>): Problem {
 
 export function isComplete(
   problem: Problem,
-  attemptMarks: ProblemAttempt["marks"]
+  attemptMarks: Matrix<AttemptCellStatus>
 ): boolean {
   return attemptMarks.every((attemptCol, x) =>
     attemptCol.every((cell, y) => problem.image[x][y] === !!cell)
   );
-}
-
-function getIncorrectMarkPenalty(previousIncorrectMarks: number): Duration {
-  if (previousIncorrectMarks === 0) {
-    return Duration.fromObject({ minutes: 2 });
-  }
-  if (previousIncorrectMarks === 1) {
-    return Duration.fromObject({ minutes: 4 });
-  }
-  return Duration.fromObject({ minutes: 8 });
-}
-
-export function incorrectMark(
-  attempt: ProblemAttempt,
-  position: ProblemCoordinate
-): ProblemAttempt {
-  const penalty = getIncorrectMarkPenalty(attempt.incorrectMarks.length);
-  const newRemaining = attempt.timeRemaining.minus(penalty);
-  const mark = { penalty, position };
-  return {
-    ...attempt,
-    timeRemaining:
-      newRemaining.as("seconds") < 0 ? Duration.fromMillis(0) : newRemaining,
-    incorrectMarks: [...attempt.incorrectMarks, mark],
-  };
 }

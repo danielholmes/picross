@@ -1,11 +1,12 @@
-import { AttemptCellStatus, ProblemAttempt } from "../../model";
+import { PlayerProblemAttempt } from "./model";
+import { AttemptCellStatus } from "../../model";
 
 export default function progressAttempt(
-  attempt: ProblemAttempt,
+  attempt: PlayerProblemAttempt,
   updateX: number,
   updateY: number,
   status: AttemptCellStatus
-): ProblemAttempt {
+): PlayerProblemAttempt {
   if (
     updateX < 0 ||
     updateX >= attempt.marks.length ||

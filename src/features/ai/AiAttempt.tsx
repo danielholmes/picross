@@ -1,10 +1,11 @@
 import { h, JSX } from "preact";
 import { useCallback, useState } from "preact/hooks";
-import { Problem, ProblemAttempt } from "../../model";
+import { Problem } from "../../model";
 import Solution from "../../components/solution";
 import Grid from "../../components/grid";
 import solveProblem, { SolveState } from "./solveProblem";
 import AiAttemptCell from "./AiAttemptCell";
+import { AiProblemAttempt } from "./model";
 
 interface AiAttemptProps {
   readonly problem: Problem;
@@ -12,7 +13,7 @@ interface AiAttemptProps {
 
 interface AiState {
   readonly state: SolveState;
-  readonly generator: Generator<SolveState, ProblemAttempt>;
+  readonly generator: Generator<SolveState, AiProblemAttempt>;
 }
 
 export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {

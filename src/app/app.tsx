@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
 import { AppStateProvider } from "./context";
-import AttemptProblem from "../components/attempt";
+import { AttemptProblem } from "../features/player";
 import { Problem } from "../model";
 import Landing from "../features/landing";
 import AiAttempt from "../features/ai";

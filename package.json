@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "prepare": "husky install",
-    "prebuild": "run-s ts lint:check format:check test",
+    "prebuild": "run-s ts lint:check format:check test:all",
     "build": "preact build",
     "serve": "sirv build --port 8080 --cors --single",
     "start": "preact watch",
@@ -14,7 +14,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "ts": "tsc --noEmit",
-    "test": "echo 'TODO: Setup'"
+    "test:all": "CI=true jest",
+    "test": "jest --watch"
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
@@ -33,7 +34,11 @@
     ],
     "rules": {
       "react/react-in-jsx-scope": 0,
-      "react/require-default-props": 0
+      "react/require-default-props": 0,
+      "import/no-extraneous-dependencies": [
+        "error",
+        {"devDependencies": ["src/setupTests.ts"]}
+      ]
     }
   },
   "dependencies": {
@@ -47,6 +52,8 @@
     "react-icons": "^4.2.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/preact": "^2.0.1",
     "@types/classnames": "^2.2.11",
     "@types/lodash": "^4.14.168",
     "@types/luxon": "^1.26.2",
@@ -67,14 +74,14 @@
     "npm-run-all": "^4.1.5",
     "preact-cli": "^3.0.0",
     "prettier": "^2.2.1",
+    "regenerator-runtime": "^0.13.7",
     "sirv-cli": "^1.0.0-next.3",
     "typescript": "^4.2.3"
   },
   "jest": {
     "preset": "jest-preset-preact",
-    "setupFiles": [
-      "<rootDir>/tests/__mocks__/browserMocks.ts",
-      "<rootDir>/tests/__mocks__/setupTests.ts"
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.ts"
     ]
   }
 }

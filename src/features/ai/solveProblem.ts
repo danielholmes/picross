@@ -1,5 +1,6 @@
-import { Problem, ProblemAttempt } from "../../model";
-import createNewAttempt from "../../components/attempt/createNewAttempt";
+import { Problem } from "../../model";
+import { AiProblemAttempt } from "./model";
+import { createMatrix } from "../../utils/matrix";
 
 type NextSolveLine = {
   readonly type: "column" | "row";
@@ -7,12 +8,12 @@ type NextSolveLine = {
 };
 
 export interface SolveState {
-  readonly attempt: ProblemAttempt;
+  readonly attempt: AiProblemAttempt;
   readonly nextLine: NextSolveLine;
 }
 
 function getNewNextLine(
-  attempt: ProblemAttempt,
+  attempt: AiProblemAttempt,
   { type, index }: NextSolveLine
 ): NextSolveLine {
   const numCols = attempt.marks.length;
@@ -45,7 +46,7 @@ function getNewNextLine(
 function* solveNextStep({
   attempt,
   nextLine,
-}: SolveState): Generator<SolveState, ProblemAttempt> {
+}: SolveState): Generator<SolveState, AiProblemAttempt> {
   // TODO: Select cells and alter attempt
   const newAttempt = attempt;
   const newNextLine = getNewNextLine(attempt, nextLine);
@@ -56,8 +57,14 @@ function* solveNextStep({
 
 export default function* solveProblem(
   problem: Problem
-): Generator<SolveState, ProblemAttempt> {
-  const attempt = createNewAttempt(problem);
+): Generator<SolveState, AiProblemAttempt> {
+  const attempt = {
+    marks: createMatrix(
+      problem.image.length,
+      problem.image[0].length,
+      undefined
+    ),
+  };
   const initialState = {
     attempt,
     nextLine: {
