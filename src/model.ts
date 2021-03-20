@@ -1,12 +1,18 @@
-import { Duration, DurationObject } from "luxon";
+import { Duration } from "luxon";
 import range from "lodash/range";
 import { Matrix } from "./utils/matrix";
 
-export type AttemptCellStatus = boolean | undefined;
+export type ProblemCellStatus = true | undefined;
+export type AttemptCellStatus = ProblemCellStatus | false;
 
-interface IncorrectMark {
+export interface ProblemCoordinate {
   readonly x: number;
   readonly y: number;
+}
+
+interface IncorrectMark {
+  readonly position: ProblemCoordinate;
+  readonly penalty: Duration;
 }
 
 export interface ProblemAttempt {
@@ -16,12 +22,15 @@ export interface ProblemAttempt {
 }
 
 export interface Problem {
-  readonly image: Matrix<boolean>;
+  readonly image: Matrix<ProblemCellStatus>;
+  readonly name?: string;
   readonly xHints: Matrix<number>;
   readonly yHints: Matrix<number>;
 }
 
-function getHints(imageLine: ReadonlyArray<boolean>): ReadonlyArray<number> {
+function getHints(
+  imageLine: ReadonlyArray<ProblemCellStatus>
+): ReadonlyArray<number> {
   const presentHints = imageLine.reduce((accu, pixel, i) => {
     if (!pixel) {
       return accu;
@@ -43,11 +52,12 @@ function getHints(imageLine: ReadonlyArray<boolean>): ReadonlyArray<number> {
 
 export function createProblemFromImage(image: Matrix<boolean>): Problem {
   const xIndices = range(0, image.length);
+  const transformedImage = image.map((col) => col.map((c) => c || undefined));
   return {
-    image,
-    xHints: xIndices.map((x) => getHints(image[x])),
+    image: transformedImage,
+    xHints: xIndices.map((x) => getHints(transformedImage[x])),
     yHints: range(0, image[0].length).map((y) =>
-      getHints(xIndices.map((x) => image[x][y]))
+      getHints(xIndices.map((x) => transformedImage[x][y]))
     ),
   };
 }
@@ -61,37 +71,23 @@ export function isComplete(
   );
 }
 
-function getIncorrectMarkPenaltyDurationObject(
-  previousIncorrectMarks: number
-): DurationObject {
+function getIncorrectMarkPenalty(previousIncorrectMarks: number): Duration {
   if (previousIncorrectMarks === 0) {
-    return { minutes: 2 };
+    return Duration.fromObject({ minutes: 2 });
   }
   if (previousIncorrectMarks === 1) {
-    return { minutes: 4 };
+    return Duration.fromObject({ minutes: 4 });
   }
-  return { minutes: 8 };
-}
-
-export function getIncorrectMarkPenalty(
-  previousIncorrectMarks: number
-): Duration {
-  const { minutes } = getIncorrectMarkPenaltyDurationObject(
-    previousIncorrectMarks
-  );
-  if (minutes === undefined) {
-    throw new Error("Unexpected duration format");
-  }
-  return Duration.fromMillis(minutes * 60 * 1000);
+  return Duration.fromObject({ minutes: 8 });
 }
 
 export function incorrectMark(
   attempt: ProblemAttempt,
-  mark: IncorrectMark
+  position: ProblemCoordinate
 ): ProblemAttempt {
-  const newRemaining = attempt.timeRemaining.minus(
-    getIncorrectMarkPenaltyDurationObject(attempt.incorrectMarks.length)
-  );
+  const penalty = getIncorrectMarkPenalty(attempt.incorrectMarks.length);
+  const newRemaining = attempt.timeRemaining.minus(penalty);
+  const mark = { penalty, position };
   return {
     ...attempt,
     timeRemaining:

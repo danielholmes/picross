@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import { useCallback } from "preact/hooks";
 import { Problem } from "../../model";
 import Grid from "../grid/Grid";
-import AttemptCell from "../attempt/AttemptCell";
+import SolutionCell from "./SolutionCell";
 
 interface SolutionProps {
   readonly problem: Problem;
@@ -10,9 +10,7 @@ interface SolutionProps {
 
 export default function Solution({ problem }: SolutionProps): JSX.Element {
   const renderCell = useCallback(
-    (x: number, y: number) => (
-      <AttemptCell status={problem.image[x][y] || undefined} disabled />
-    ),
+    (x: number, y: number) => <SolutionCell status={problem.image[x][y]} />,
     [problem]
   );
 

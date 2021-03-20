@@ -4,7 +4,6 @@ import noop from "lodash/noop";
 import classNames from "classnames";
 import {
   AttemptCellStatus,
-  getIncorrectMarkPenalty,
   incorrectMark,
   isComplete,
   Problem,
@@ -53,15 +52,9 @@ export default function AttemptProblem({
 
   // Incorrect
   const [showIncorrect, setShowIncorrect] = useState(false);
-  const showIncorrectMark = useMemo(() => {
-    if (!showIncorrect) {
-      return undefined;
-    }
-    return {
-      ...incorrectMarks[incorrectMarks.length - 1],
-      penalty: getIncorrectMarkPenalty(incorrectMarks.length - 1),
-    };
-  }, [showIncorrect, incorrectMarks]);
+  const showIncorrectMark = showIncorrect
+    ? incorrectMarks[incorrectMarks.length - 1]
+    : undefined;
   useEffect(() => {
     if (!showIncorrect) {
       return noop;
@@ -206,13 +199,16 @@ export default function AttemptProblem({
 
   // Render attempt cell
   const cellClassName = classNames({
-    "clear-tool": dragging.type === "dragging" && dragging.tool === undefined,
+    "clear-tool":
+      !disabled && dragging.type === "dragging" && dragging.tool === undefined,
     "unmark-tool":
-      (dragging.type === "dragging" && dragging.tool === false) ||
-      (dragging.type === "not-dragging" && isUnmarkActive),
+      !disabled &&
+      ((dragging.type === "dragging" && dragging.tool === false) ||
+        (dragging.type === "not-dragging" && isUnmarkActive)),
     "mark-tool":
-      (dragging.type === "dragging" && dragging.tool === true) ||
-      (dragging.type === "not-dragging" && !isUnmarkActive),
+      !disabled &&
+      ((dragging.type === "dragging" && dragging.tool === true) ||
+        (dragging.type === "not-dragging" && !isUnmarkActive)),
   });
   const renderCell = useCallback(
     (x: number, y: number) => (
@@ -234,8 +230,8 @@ export default function AttemptProblem({
         className={cellClassName}
         penalty={
           showIncorrectMark &&
-          showIncorrectMark.x === x &&
-          showIncorrectMark.y === y
+          showIncorrectMark.position.x === x &&
+          showIncorrectMark.position.y === y
             ? showIncorrectMark.penalty
             : undefined
         }
@@ -255,7 +251,7 @@ export default function AttemptProblem({
   return (
     <div>
       <div>Time: {attempt.timeRemaining.toFormat("mm:ss")}</div>
-      <Grid problem={problem} renderCell={renderCell} />
+      <Grid problem={problem} renderCell={renderCell} showHints />
       {completeStatus === "success" && (
         <div>
           <h5>Success</h5>
