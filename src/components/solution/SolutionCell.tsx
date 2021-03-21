@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { memo } from "preact/compat";
 
 type SolutionCellProps = {
-  readonly status?: true;
+  readonly status: boolean;
 };
 
 function SolutionCell({ status }: SolutionCellProps): JSX.Element {

@@ -18,3 +18,58 @@ export function createMatrix<T>(
 ): Matrix<T> {
   return createMatrixWithFactory(width, height, () => value);
 }
+
+export function transpose<T>(matrix: Matrix<T>): Matrix<T> {
+  return createMatrixWithFactory(
+    matrix[0].length,
+    matrix.length,
+    (x, y) => matrix[y][x]
+  );
+}
+
+export function getMatrixCols<T>(
+  matrix: Matrix<T>
+): ReadonlyArray<ReadonlyArray<T>> {
+  return matrix;
+}
+
+export function getMatrixRows<T>(
+  matrix: Matrix<T>
+): ReadonlyArray<ReadonlyArray<T>> {
+  const xIndices = range(0, matrix.length);
+  return range(0, matrix[0].length).map((y) =>
+    xIndices.map((x) => matrix[x][y])
+  );
+}
+
+export function getMatrixRow<T>(
+  matrix: Matrix<T>,
+  index: number
+): ReadonlyArray<T> {
+  return matrix.map((col) => col[index]);
+}
+
+export function replaceColumn<T>(
+  matrix: Matrix<T>,
+  index: number,
+  newCol: ReadonlyArray<T>
+): Matrix<T> {
+  return matrix.map((col, x) => {
+    if (x === index) {
+      return newCol;
+    }
+    return col;
+  });
+}
+
+export function replaceRow<T>(
+  matrix: Matrix<T>,
+  index: number,
+  newRow: ReadonlyArray<T>
+): Matrix<T> {
+  return matrix.map((col, x) => [
+    ...col.slice(0, index),
+    newRow[x],
+    ...col.slice(index + 1),
+  ]);
+}

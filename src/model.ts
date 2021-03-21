@@ -1,8 +1,7 @@
-import range from "lodash/range";
-import { Matrix } from "./utils/matrix";
+import { getMatrixCols, getMatrixRows, Matrix } from "./utils/matrix";
 
-export type ProblemCellStatus = true | undefined;
-export type AttemptCellStatus = ProblemCellStatus | false;
+export type ProblemCellStatus = boolean;
+export type AttemptCellStatus = ProblemCellStatus | undefined;
 
 export interface ProblemCoordinate {
   readonly x: number;
@@ -12,8 +11,8 @@ export interface ProblemCoordinate {
 export interface Problem {
   readonly image: Matrix<ProblemCellStatus>;
   readonly name?: string;
-  readonly xHints: Matrix<number>;
-  readonly yHints: Matrix<number>;
+  readonly columnHints: Matrix<number>;
+  readonly rowHints: Matrix<number>;
 }
 
 function getHints(
@@ -39,14 +38,10 @@ function getHints(
 }
 
 export function createProblemFromImage(image: Matrix<boolean>): Problem {
-  const xIndices = range(0, image.length);
-  const transformedImage = image.map((col) => col.map((c) => c || undefined));
   return {
-    image: transformedImage,
-    xHints: xIndices.map((x) => getHints(transformedImage[x])),
-    yHints: range(0, image[0].length).map((y) =>
-      getHints(xIndices.map((x) => transformedImage[x][y]))
-    ),
+    image,
+    columnHints: getMatrixCols(image).map((col) => getHints(col)),
+    rowHints: getMatrixRows(image).map((row) => getHints(row)),
   };
 }
 

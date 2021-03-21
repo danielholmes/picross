@@ -16,7 +16,7 @@ function Grid({ problem, showHints, renderCell }: GridProps): JSX.Element {
     <div className="problem-grid">
       {showHints && (
         <div className="problem-x-hints">
-          {problem.xHints.map((xHint, x) => (
+          {problem.columnHints.map((xHint, x) => (
             <div key={x} className="problem-x-hint">
               {xHint.map((hint, i) => (
                 <div key={i}>{hint}</div>
@@ -33,7 +33,7 @@ function Grid({ problem, showHints, renderCell }: GridProps): JSX.Element {
         ))}
         {showHints && (
           <div className="problem-col">
-            {problem.yHints.map((yHint, y) => (
+            {problem.rowHints.map((yHint, y) => (
               <div key={y} className="problem-y-hint">
                 {yHint.map((hint, i) => (
                   <div key={i}>{hint}</div>
