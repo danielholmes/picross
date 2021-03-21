@@ -1,5 +1,6 @@
 import { h, JSX } from "preact";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
+import noop from "lodash/noop";
 import { Problem } from "../../model";
 import Grid from "../../components/grid";
 import solveProblem, { SolveState } from "./solveProblem";
@@ -14,6 +15,9 @@ interface AiState {
   readonly state: AiProblemAttempt | SolveState;
   readonly generator: Generator<SolveState, AiProblemAttempt>;
 }
+
+const minimumSpeed = 0;
+const maximumSpeed = 20;
 
 export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
   // Attempt
@@ -32,6 +36,7 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
       };
     }
   );
+  const isComplete = "marks" in state;
   const marks = "marks" in state ? state.marks : state.attempt.marks;
   const nextLine = "marks" in state ? undefined : state.nextLine;
   // TODO: Can probably cancel generator
@@ -42,7 +47,17 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
   // }, [problem]);
 
   // AI management
-  const onNextClick = () => {
+  const [speed, setSpeed] = useState(0);
+  const onIncreaseSpeed = () => {
+    setSpeed((previous) => Math.min(maximumSpeed, previous + 1));
+  };
+  const onDecreaseSpeed = () => {
+    setSpeed((previous) => Math.max(minimumSpeed, previous - 1));
+  };
+  const onStopAutoProgress = () => {
+    setSpeed(0);
+  };
+  const progressSolution = useCallback(() => {
     setAiState(({ generator }) => {
       const step = generator.next();
 
@@ -56,7 +71,16 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
         generator,
       };
     });
-  };
+  }, []);
+  useEffect(() => {
+    if (speed === 0 || isComplete) {
+      return noop;
+    }
+    const intervalId = setInterval(progressSolution, 2000 / speed);
+    return (): void => {
+      clearInterval(intervalId);
+    };
+  }, [speed, progressSolution, isComplete]);
 
   // Cell
   const renderCell = useCallback(
@@ -78,9 +102,32 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
       <Grid problem={problem} renderCell={renderCell} showHints />
       {!nextLine && <div>Complete</div>}
       {nextLine && (
-        <button type="button" onClick={onNextClick}>
-          Next
-        </button>
+        <div>
+          <button
+            type="button"
+            onClick={onDecreaseSpeed}
+            disabled={speed === minimumSpeed}
+          >
+            -
+          </button>
+          Speed: {speed}
+          <button
+            type="button"
+            onClick={onIncreaseSpeed}
+            disabled={speed === maximumSpeed}
+          >
+            +
+          </button>
+          {speed === 0 ? (
+            <button type="button" onClick={progressSolution}>
+              Next
+            </button>
+          ) : (
+            <button type="button" onClick={onStopAutoProgress}>
+              Stop
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

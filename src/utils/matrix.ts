@@ -5,10 +5,19 @@ export type Matrix<T> = ReadonlyArray<ReadonlyArray<T>>;
 export function createMatrixWithFactory<T>(
   width: number,
   height: number,
-  factory: (x: number, y: number) => T
+  factory: (x: number, y: number, current: Matrix<T>) => T
 ): Matrix<T> {
   const col = range(0, height);
-  return range(0, width).map((x) => col.map((y) => factory(x, y)));
+  return range(0, width).reduce(
+    (previousCols, x) => [
+      ...previousCols,
+      col.reduce((previousValues, y) => {
+        const current: Matrix<T> = [...previousCols, previousValues];
+        return [...previousValues, factory(x, y, current)];
+      }, [] as ReadonlyArray<T>),
+    ],
+    [] as Matrix<T>
+  );
 }
 
 export function createMatrix<T>(

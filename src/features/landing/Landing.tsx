@@ -23,7 +23,30 @@ export default function Landing({ onStart }: LandingProps): JSX.Element {
   const onStartRandomPattern = () => {
     onStart(
       createProblemFromImage(
-        createMatrixWithFactory(15, 15, () => Math.random() < 0.5)
+        createMatrixWithFactory(15, 15, (x, y, current) => {
+          // Trying to clump dots together a bit
+          const previousXMultiplier = (() => {
+            if (x === 0) {
+              return 0.5;
+            }
+            if (current[x - 1][y]) {
+              return 1;
+            }
+            return 0;
+          })();
+          const previousYMultiplier = (() => {
+            if (y === 0) {
+              return 0.5;
+            }
+            if (current[x][y - 1]) {
+              return 1;
+            }
+            return 0;
+          })();
+          const probability =
+            previousXMultiplier * 0.3 + previousYMultiplier * 0.3 + 0.15;
+          return Math.random() < probability;
+        })
       ),
       control
     );
