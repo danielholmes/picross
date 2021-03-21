@@ -67,6 +67,62 @@ describe("solveProblem", () => {
     });
   });
 
+  it("handles an empty col properly", () => {
+    const problem = createProblemFromImage(
+      transpose([
+        [false, true],
+        [false, true],
+        [false, true],
+      ])
+    );
+    const solver = solveProblem(problem);
+
+    solver.next();
+    const firstStep = solver.next();
+    expect(firstStep).toEqual({
+      done: false,
+      value: {
+        attempt: {
+          marks: transpose([
+            [false, undefined],
+            [false, undefined],
+            [false, undefined],
+          ]),
+        },
+        nextLine: {
+          type: "column",
+          index: 1,
+        },
+      },
+    });
+  });
+
+  it("fully solves more complex example", () => {
+    const problem = createProblemFromImage(
+      transpose([
+        [false, true, true],
+        [false, true, false],
+        [false, true, true],
+      ])
+    );
+    const solver = solveProblem(problem);
+
+    solver.next();
+    solver.next(); // Col 1
+    solver.next(); // Col 2
+    const result = solver.next(); // Col 3 - complete
+    expect(result).toEqual({
+      done: true,
+      value: {
+        marks: transpose([
+          [false, true, true],
+          [false, true, false],
+          [false, true, true],
+        ]),
+      },
+    });
+  });
+
   // Single col only (edge case)
   // Single row only (edge case)
 });

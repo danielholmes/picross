@@ -27,7 +27,7 @@ export function transpose<T>(matrix: Matrix<T>): Matrix<T> {
   );
 }
 
-export function getMatrixCols<T>(
+export function getMatrixColumns<T>(
   matrix: Matrix<T>
 ): ReadonlyArray<ReadonlyArray<T>> {
   return matrix;
@@ -47,6 +47,13 @@ export function getMatrixRow<T>(
   index: number
 ): ReadonlyArray<T> {
   return matrix.map((col) => col[index]);
+}
+
+export function getMatrixColumn<T>(
+  matrix: Matrix<T>,
+  index: number
+): ReadonlyArray<T> {
+  return matrix[index];
 }
 
 export function replaceColumn<T>(

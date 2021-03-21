@@ -1,4 +1,4 @@
-import { getMatrixCols, getMatrixRows, Matrix } from "./utils/matrix";
+import { getMatrixColumns, getMatrixRows, Matrix } from "./utils/matrix";
 
 export type ProblemCellStatus = boolean;
 export type AttemptCellStatus = ProblemCellStatus | undefined;
@@ -40,7 +40,7 @@ function getHints(
 export function createProblemFromImage(image: Matrix<boolean>): Problem {
   return {
     image,
-    columnHints: getMatrixCols(image).map((col) => getHints(col)),
+    columnHints: getMatrixColumns(image).map((col) => getHints(col)),
     rowHints: getMatrixRows(image).map((row) => getHints(row)),
   };
 }

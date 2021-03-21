@@ -5,6 +5,7 @@ import { AttemptCellStatus, isComplete, Problem } from "../../model";
 import { AiProblemAttempt } from "./model";
 import {
   createMatrix,
+  getMatrixColumn,
   getMatrixRow,
   replaceColumn,
   replaceRow,
@@ -52,20 +53,47 @@ function getNewNextLine(
   };
 }
 
+function isAttemptLineFilled(line: ReadonlyArray<AttemptCellStatus>): boolean {
+  return line.every((v) => v !== undefined);
+}
+
+function getNewNonFilledNextLine(
+  attempt: AiProblemAttempt,
+  stage: SolveStage
+): SolveStage {
+  const potential = getNewNextLine(attempt, stage);
+  const potentialLine =
+    potential.type === "column"
+      ? getMatrixColumn(attempt.marks, potential.index)
+      : getMatrixRow(attempt.marks, potential.index);
+  if (!isAttemptLineFilled(potentialLine)) {
+    return potential;
+  }
+  return getNewNonFilledNextLine(attempt, potential);
+}
+
+function doesLineMatchCurrent(
+  line: ReadonlyArray<AttemptCellStatus>,
+  current: ReadonlyArray<AttemptCellStatus>
+): boolean {
+  return line.every((pC, i) => current[i] === undefined || current[i] === pC);
+}
+
 function createPermutations(
   hints: ReadonlyArray<number>,
   current: ReadonlyArray<AttemptCellStatus>
 ): ReadonlyArray<ReadonlyArray<AttemptCellStatus>> {
   // Special case of empty line
   if (hints.length === 1 && hints[0] === 0) {
-    return [current.map(() => false)];
+    return [filledArray(current.length, false)];
   }
 
   const otherHints = hints.slice(1);
-  const otherSpace = sum(otherHints) + otherHints.length; // .length are the spaces between
+  // .length is for the spaces between each hint
+  const otherSpace = sum(otherHints) + otherHints.length;
 
   const thisHint = hints[0];
-  const thisHintSpace = current.length - otherSpace;
+  const thisHintSpace = current.length - otherSpace - thisHint;
   const possibleThisPositions: ReadonlyArray<
     ReadonlyArray<AttemptCellStatus>
   > = range(0, 1 + thisHintSpace).map((i) => [
@@ -73,16 +101,16 @@ function createPermutations(
     ...filledArray(thisHint, true),
   ]);
 
-  const possibleMatchingCurrent: ReadonlyArray<
-    ReadonlyArray<AttemptCellStatus>
-  > = possibleThisPositions.filter((possibleLine) =>
-    possibleLine.every((pC, i) => current[i] === undefined || current[i] === pC)
-  );
-
   if (otherHints.length === 0) {
-    return possibleMatchingCurrent;
+    // fill out empty spaces at end of perms
+    return possibleThisPositions
+      .map((p) => [...p, ...filledArray(current.length - p.length, false)])
+      .filter((p) => doesLineMatchCurrent(p, current));
   }
 
+  const possibleMatchingCurrent = possibleThisPositions.filter((possibleLine) =>
+    doesLineMatchCurrent(possibleLine, current)
+  );
   return flatMap(possibleMatchingCurrent, (p) => {
     const otherPermutations: ReadonlyArray<
       ReadonlyArray<AttemptCellStatus>
@@ -96,7 +124,7 @@ function solveLine(
   hints: ReadonlyArray<number>
 ): ReadonlyArray<AttemptCellStatus> {
   // Already solved
-  if (line.every((v) => v !== undefined)) {
+  if (isAttemptLineFilled(line)) {
     return line;
   }
 
@@ -107,8 +135,16 @@ function solveLine(
     );
   }
 
-  console.log("TODO: Find all common value and use those");
-  return allPermutations[0];
+  return allPermutations.slice(1).reduce(
+    (previous, perm) =>
+      previous.map((c, i) => {
+        if (c === perm[i]) {
+          return c;
+        }
+        return undefined;
+      }),
+    allPermutations[0]
+  );
 }
 
 function stepAttempt(
@@ -146,7 +182,7 @@ function* solveNextStep(
     return newAttempt;
   }
 
-  const newNextLine = getNewNextLine(attempt, nextLine);
+  const newNextLine = getNewNonFilledNextLine(attempt, nextLine);
   const nextState = { attempt: newAttempt, nextLine: newNextLine };
   yield nextState;
   return yield* solveNextStep(problem, nextState);

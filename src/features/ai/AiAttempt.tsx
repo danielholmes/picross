@@ -1,7 +1,6 @@
 import { h, JSX } from "preact";
 import { useCallback, useState } from "preact/hooks";
 import { Problem } from "../../model";
-import Solution from "../../components/solution";
 import Grid from "../../components/grid";
 import solveProblem, { SolveState } from "./solveProblem";
 import AiAttemptCell from "./AiAttemptCell";
@@ -12,29 +11,29 @@ interface AiAttemptProps {
 }
 
 interface AiState {
-  readonly state: SolveState;
+  readonly state: AiProblemAttempt | SolveState;
   readonly generator: Generator<SolveState, AiProblemAttempt>;
 }
 
 export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
   // Attempt
-  const [aiState, setAiState] = useState<AiState>(() => {
-    const generator = solveProblem(problem);
-    const first = generator.next();
-    // Note: Can probably change later to show complete state
-    if (first.done) {
-      throw new Error("Already done");
+  const [{ state }, setAiState] = useState<AiState>(
+    (): AiState => {
+      const newGenerator = solveProblem(problem);
+      const first = newGenerator.next();
+
+      if (first.done) {
+        // TODO: Don't need generator if complete
+        return { state: first.value, generator: newGenerator };
+      }
+      return {
+        state: first.value,
+        generator: newGenerator,
+      };
     }
-    return {
-      state: first.value,
-      generator,
-    };
-  });
-  const {
-    state: { attempt, nextLine },
-  } = aiState;
-  console.log("nextLine", nextLine);
-  const { marks } = attempt;
+  );
+  const marks = "marks" in state ? state.marks : state.attempt.marks;
+  const nextLine = "marks" in state ? undefined : state.nextLine;
   // TODO: Can probably cancel generator
   // useEffect(() => {
   //   // Unfortunately this results in running twice (the state initialiser).
@@ -44,15 +43,16 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
 
   // AI management
   const onNextClick = () => {
-    console.log("onNextClick", aiState);
     setAiState(({ generator }) => {
-      const first = generator.next();
-      // Note: Can probably change later to show complete state
-      if (first.done) {
-        throw new Error("Already done");
+      const step = generator.next();
+
+      if (step.done) {
+        // TODO: Don't need generator if complete
+        return { state: step.value, generator };
       }
+
       return {
-        state: first.value,
+        state: step.value,
         generator,
       };
     });
@@ -64,8 +64,8 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
       <AiAttemptCell
         status={marks[x][y]}
         highlighted={
-          (nextLine.type === "column" && x === nextLine.index) ||
-          (nextLine.type === "row" && y === nextLine.index)
+          (nextLine?.type === "column" && x === nextLine.index) ||
+          (nextLine?.type === "row" && y === nextLine.index)
         }
       />
     ),
@@ -76,11 +76,12 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
     <div>
       <h4>Attempt</h4>
       <Grid problem={problem} renderCell={renderCell} showHints />
-      <button type="button" onClick={onNextClick}>
-        Next
-      </button>
-      <h4>Solution</h4>
-      <Solution problem={problem} />
+      {!nextLine && <div>Complete</div>}
+      {nextLine && (
+        <button type="button" onClick={onNextClick}>
+          Next
+        </button>
+      )}
     </div>
   );
 }
