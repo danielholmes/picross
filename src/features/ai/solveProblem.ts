@@ -141,7 +141,7 @@ function solveLine(
         if (c === perm[i]) {
           return c;
         }
-        return undefined;
+        return line[i];
       }),
     allPermutations[0]
   );
