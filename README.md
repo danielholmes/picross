@@ -40,14 +40,8 @@ Done via Github Actions which will deploy the site to <https://picross.danielhol
 
 ## TODO
 
- - AI implementation.
- - Use a UI framework and/or proper graphic treatment.
  - Find some proper images to use.
     - https://www.123rf.com/photo_4378683_pixel-icon-set-vector.html
     - https://www.123rf.com/photo_15118439_pixel-icons-on-brown.html
     - https://fontmeme.com/fonts/pixel-icons-compilation-font/
-
-
-## Appendix
-
-For deployment - <https://joshuatz.com/posts/2021/deploy-preact-from-subdirectory/>
+ - Use a UI framework and/or proper graphic treatment.
