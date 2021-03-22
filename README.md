@@ -48,5 +48,6 @@ Done via Github Actions which will deploy the site to <https://picross.danielhol
     - https://www.123rf.com/photo_15118439_pixel-icons-on-brown.html
     - https://fontmeme.com/fonts/pixel-icons-compilation-font/
  - Add AI test for all library images
+ - Solver keep sets of "dirty" rows and columns and only visit those
  - Need a solution for "stuck" situations
  - Use a UI framework and/or proper graphic treatment.
