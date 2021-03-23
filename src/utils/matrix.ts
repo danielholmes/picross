@@ -65,27 +65,18 @@ export function getMatrixColumn<T>(
   return matrix[index];
 }
 
-export function replaceColumn<T>(
-  matrix: Matrix<T>,
-  index: number,
-  newCol: ReadonlyArray<T>
+export function matrixSet<T>(
+  previous: Matrix<T>,
+  updateX: number,
+  updateY: number,
+  newValue: T
 ): Matrix<T> {
-  return matrix.map((col, x) => {
-    if (x === index) {
-      return newCol;
-    }
-    return col;
-  });
-}
-
-export function replaceRow<T>(
-  matrix: Matrix<T>,
-  index: number,
-  newRow: ReadonlyArray<T>
-): Matrix<T> {
-  return matrix.map((col, x) => [
-    ...col.slice(0, index),
-    newRow[x],
-    ...col.slice(index + 1),
-  ]);
+  return previous.map((col, x) =>
+    col.map((s, y) => {
+      if (x === updateX && y === updateY) {
+        return newValue;
+      }
+      return s;
+    })
+  );
 }

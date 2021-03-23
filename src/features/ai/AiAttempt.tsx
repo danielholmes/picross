@@ -1,19 +1,21 @@
 import { h, JSX } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import noop from "lodash/noop";
-import { Problem } from "../../model";
+import { isComplete, Problem } from "../../model";
 import Grid from "../../components/grid";
-import solveProblem, { SolveState } from "./solveProblem";
+import solveProblem, { applySolveActions, SolveState } from "./solveProblem";
 import AiAttemptCell from "./AiAttemptCell";
 import { AiProblemAttempt } from "./model";
+import { createMatrix } from "../../utils/matrix";
 
 interface AiAttemptProps {
   readonly problem: Problem;
 }
 
 interface AiState {
-  readonly state: AiProblemAttempt | SolveState;
-  readonly generator: Generator<SolveState, AiProblemAttempt>;
+  readonly attempt: AiProblemAttempt;
+  readonly step?: SolveState;
+  readonly generator: Generator<SolveState, void, AiProblemAttempt>;
 }
 
 const minimumSpeed = 0;
@@ -21,24 +23,35 @@ const maximumSpeed = 20;
 
 export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
   // Attempt
-  const [{ state }, setAiState] = useState<AiState>(
+  const [{ attempt, step }, setAiState] = useState<AiState>(
     (): AiState => {
+      const initAttempt = {
+        marks: createMatrix(
+          problem.image.length,
+          problem.image[0].length,
+          undefined
+        ),
+      };
       const newGenerator = solveProblem(problem);
-      const first = newGenerator.next();
+      const first = newGenerator.next(initAttempt);
 
       if (first.done) {
         // TODO: Don't need generator if complete
-        return { state: first.value, generator: newGenerator };
+        return { attempt: initAttempt, generator: newGenerator };
       }
+
+      const { actions } = first.value;
+      const newAttempt = applySolveActions(initAttempt, actions);
       return {
-        state: first.value,
+        attempt: newAttempt,
+        step: first.value,
         generator: newGenerator,
       };
     }
   );
-  const isComplete = "marks" in state;
-  const marks = "marks" in state ? state.marks : state.attempt.marks;
-  const nextLine = "marks" in state ? undefined : state.nextLine;
+  const isAttemptComplete = isComplete(problem, attempt.marks);
+  const { marks } = attempt;
+  const nextLine = step?.nextLine;
   // TODO: Can probably cancel generator
   // useEffect(() => {
   //   // Unfortunately this results in running twice (the state initialiser).
@@ -58,29 +71,29 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
     setSpeed(0);
   };
   const progressSolution = useCallback(() => {
-    setAiState(({ generator }) => {
-      const step = generator.next();
-
-      if (step.done) {
+    setAiState(({ attempt: previousAttempt, generator }) => {
+      const nextResult = generator.next(previousAttempt);
+      if (nextResult.done) {
         // TODO: Don't need generator if complete
-        return { state: step.value, generator };
+        return { attempt: previousAttempt, generator };
       }
 
       return {
-        state: step.value,
+        attempt: applySolveActions(previousAttempt, nextResult.value.actions),
+        step: nextResult.value,
         generator,
       };
     });
   }, []);
   useEffect(() => {
-    if (speed === 0 || isComplete) {
+    if (speed === 0 || isAttemptComplete) {
       return noop;
     }
     const intervalId = setInterval(progressSolution, 2000 / speed);
     return (): void => {
       clearInterval(intervalId);
     };
-  }, [speed, progressSolution, isComplete]);
+  }, [speed, progressSolution, isAttemptComplete]);
 
   // Cell
   const renderCell = useCallback(
@@ -100,8 +113,8 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
     <div>
       <h4>Attempt</h4>
       <Grid problem={problem} renderCell={renderCell} showHints />
-      {!nextLine && <div>Complete</div>}
-      {nextLine && (
+      {isAttemptComplete && <div>Complete</div>}
+      {!isAttemptComplete && (
         <div>
           <button
             type="button"

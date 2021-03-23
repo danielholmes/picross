@@ -1,15 +1,9 @@
 import flatMap from "lodash/flatMap";
 import sum from "lodash/sum";
 import range from "lodash/range";
-import { AttemptCellStatus, isComplete, Problem } from "../../model";
+import { AttemptCellStatus, Problem, ProblemCoordinate } from "../../model";
 import { AiProblemAttempt } from "./model";
-import {
-  createMatrix,
-  getMatrixColumn,
-  getMatrixRow,
-  replaceColumn,
-  replaceRow,
-} from "../../utils/matrix";
+import { getMatrixColumn, getMatrixRow, matrixSet } from "../../utils/matrix";
 import { filledArray } from "../../utils/array";
 
 type SolveStage = {
@@ -17,8 +11,19 @@ type SolveStage = {
   readonly index: number;
 };
 
+interface MarkSolveAction {
+  readonly type: "mark";
+  readonly coordinate: ProblemCoordinate;
+}
+interface UnmarkSolveAction {
+  readonly type: "unmark";
+  readonly coordinate: ProblemCoordinate;
+}
+
+type SolveAction = MarkSolveAction | UnmarkSolveAction;
+
 export interface SolveState {
-  readonly attempt: AiProblemAttempt;
+  readonly actions: ReadonlyArray<SolveAction>;
   readonly nextLine: SolveStage;
 }
 
@@ -151,60 +156,109 @@ function stepAttempt(
   problem: Problem,
   attempt: AiProblemAttempt,
   current: SolveStage
-): AiProblemAttempt {
+): ReadonlyArray<SolveAction> {
   if (current.type === "column") {
     const line = attempt.marks[current.index];
     const newLine = solveLine(line, problem.columnHints[current.index]);
     if (line === newLine) {
-      return attempt;
+      return [];
     }
-    return {
-      marks: replaceColumn(attempt.marks, current.index, newLine),
-    };
+    // TODO: solveLine should return actions instead
+    return newLine.reduce((previous, status, i): ReadonlyArray<SolveAction> => {
+      if (status === undefined || status === line[i]) {
+        return previous;
+      }
+      return [
+        ...previous,
+        {
+          type: status ? "mark" : "unmark",
+          coordinate: { x: current.index, y: i },
+        },
+      ];
+    }, [] as ReadonlyArray<SolveAction>);
   }
 
   const line = getMatrixRow(attempt.marks, current.index);
+  // TODO: solveLine should return actions instead
   const newLine = solveLine(line, problem.rowHints[current.index]);
   if (line === newLine) {
-    return attempt;
+    return [];
   }
-  return {
-    marks: replaceRow(attempt.marks, current.index, newLine),
-  };
+  return newLine.reduce((previous, status, i): ReadonlyArray<SolveAction> => {
+    if (status === undefined || status === line[i]) {
+      return previous;
+    }
+    return [
+      ...previous,
+      {
+        type: status ? "mark" : "unmark",
+        coordinate: { x: i, y: current.index },
+      },
+    ];
+  }, [] as ReadonlyArray<SolveAction>);
 }
 
 function* solveNextStep(
   problem: Problem,
-  { attempt, nextLine }: SolveState
-): Generator<SolveState, AiProblemAttempt> {
-  const newAttempt = stepAttempt(problem, attempt, nextLine);
-  if (isComplete(problem, newAttempt.marks)) {
-    return newAttempt;
-  }
+  attempt: AiProblemAttempt,
+  { nextLine }: SolveState
+): Generator<SolveState, void, AiProblemAttempt> {
+  const actions = stepAttempt(problem, attempt, nextLine);
 
   const newNextLine = getNewNonFilledNextLine(attempt, nextLine);
-  const nextState = { attempt: newAttempt, nextLine: newNextLine };
-  yield nextState;
-  return yield* solveNextStep(problem, nextState);
+  const nextState = {
+    nextLine: newNextLine,
+    actions,
+  };
+  const newAttempt = yield nextState;
+  return yield* solveNextStep(problem, newAttempt, nextState);
 }
 
 export default function* solveProblem(
   problem: Problem
-): Generator<SolveState, AiProblemAttempt> {
-  const attempt = {
-    marks: createMatrix(
-      problem.image.length,
-      problem.image[0].length,
-      undefined
-    ),
-  };
+): Generator<SolveState, void, AiProblemAttempt> {
   const initialState = {
-    attempt,
+    actions: [],
     nextLine: {
       type: "column" as const,
       index: 0,
     },
   };
-  yield initialState;
-  return yield* solveNextStep(problem, initialState);
+  const attempt = yield initialState;
+  yield* solveNextStep(problem, attempt, initialState);
+}
+
+export function applySolveAction(
+  attempt: AiProblemAttempt,
+  action: SolveAction
+): AiProblemAttempt {
+  switch (action.type) {
+    case "mark":
+      return {
+        marks: matrixSet(
+          attempt.marks,
+          action.coordinate.x,
+          action.coordinate.y,
+          true
+        ),
+      };
+    case "unmark":
+      return {
+        marks: matrixSet(
+          attempt.marks,
+          action.coordinate.x,
+          action.coordinate.y,
+          false
+        ),
+      };
+    default:
+      throw new Error("Unexpected action type");
+  }
+}
+
+export function applySolveActions(
+  previousAttempt: AiProblemAttempt,
+  actions: ReadonlyArray<SolveAction>
+): AiProblemAttempt {
+  return actions.reduce(applySolveAction, previousAttempt);
 }

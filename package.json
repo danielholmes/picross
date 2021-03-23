@@ -37,7 +37,11 @@
       "react/require-default-props": 0,
       "import/no-extraneous-dependencies": [
         "error",
-        {"devDependencies": ["src/setupTests.ts"]}
+        {
+          "devDependencies": [
+            "src/setupTests.ts"
+          ]
+        }
       ]
     }
   },

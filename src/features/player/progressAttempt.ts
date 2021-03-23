@@ -1,5 +1,6 @@
 import { PlayerProblemAttempt } from "./model";
 import { AttemptCellStatus } from "../../model";
+import { matrixSet } from "../../utils/matrix";
 
 export default function progressAttempt(
   attempt: PlayerProblemAttempt,
@@ -17,13 +18,6 @@ export default function progressAttempt(
   }
   return {
     ...attempt,
-    marks: attempt.marks.map((col, x) =>
-      col.map((s, y) => {
-        if (x === updateX && y === updateY) {
-          return status;
-        }
-        return s;
-      })
-    ),
+    marks: matrixSet(attempt.marks, updateX, updateY, status),
   };
 }
