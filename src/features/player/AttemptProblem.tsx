@@ -9,6 +9,7 @@ import AttemptCell from "./AttemptCell";
 import createNewAttempt from "./createNewAttempt";
 import Grid from "../../components/grid";
 import { applyAttemptAction, progressTime } from "../attempt";
+import Solution from "../../components/solution";
 
 type AttemptProblemProps = {
   readonly problem: Problem;
@@ -277,6 +278,7 @@ export default function AttemptProblem({
       <button type="button" onClick={onCancel}>
         Cancel
       </button>
+      <Solution problem={problem} />
     </div>
   );
 }

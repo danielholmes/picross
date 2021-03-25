@@ -40,14 +40,11 @@ Done via Github Actions which will deploy the site to <https://picross.danielhol
 
 ## TODO
 
- - Solver return intents rather than modified attempt (need to pass attempt to next?). 
-   Move towards unified interface for player and ai.
-    - probably not a generator any more at that point
- - Find some proper images to use.
-    - https://www.123rf.com/photo_4378683_pixel-icon-set-vector.html
-    - https://www.123rf.com/photo_15118439_pixel-icons-on-brown.html
-    - https://fontmeme.com/fonts/pixel-icons-compilation-font/
+ - Solver keep sets of "dirty" rows and columns and only visit those.
+ - Need an AI solution for "stuck" situations - when dirty rows and columns is empty.
+   - Show percentages before choose
  - Add AI test for all library images
- - Solver keep sets of "dirty" rows and columns and only visit those
- - Need a solution for "stuck" situations
  - Use a UI framework and/or proper graphic treatment.
+ - Stop "flash" when creating image
+ - Find a vector graphic library that can be used for different sized boards.
+ - Create a library mode which saves progress (has beaten, best time) 

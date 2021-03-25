@@ -3,7 +3,7 @@ import { useState } from "preact/hooks";
 import { createProblemFromImage, Problem } from "../../model";
 import { createMatrixWithFactory } from "../../utils/matrix";
 import { useAppState } from "../../app";
-import { createProblemFromSource } from "../library";
+import { createProblemFromSource, ProblemSource } from "../library";
 import { sampleOrThrow } from "../../utils/array";
 
 type ControlType = "ai" | "player";
@@ -59,6 +59,11 @@ export default function Landing({ onStart }: LandingProps): JSX.Element {
     onStart(problem, control);
   };
 
+  const onLibraryItemClick = async (source: ProblemSource) => {
+    const problem = await createProblemFromSource(source, 15);
+    onStart(problem, control);
+  };
+
   return (
     <div>
       <h1>Welcome to Picross</h1>
@@ -80,6 +85,17 @@ export default function Landing({ onStart }: LandingProps): JSX.Element {
       <button type="button" onClick={onStartRandomLibraryImage}>
         Start random library image
       </button>
+      <div>
+        {library.map((libraryItem) => (
+          <button
+            key={libraryItem.id}
+            type="button"
+            onClick={() => onLibraryItemClick(libraryItem)}
+          >
+            {libraryItem.name}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

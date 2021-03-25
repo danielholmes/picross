@@ -1,7 +1,7 @@
 import { JSX, h, ComponentChildren, createContext } from "preact";
 import { useCallback, useContext, useState } from "preact/hooks";
 import { AppState } from "./state";
-import { createLibrary } from "../features/library";
+import { library } from "../features/library";
 
 type AppDispatch = () => void;
 
@@ -20,7 +20,7 @@ export function AppStateProvider({
   children,
 }: AppStateProviderProps): JSX.Element {
   const [state] = useState<AppState>(() => ({
-    library: createLibrary(),
+    library,
     results: [],
   }));
   const dispatch = useCallback(() => {
