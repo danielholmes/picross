@@ -87,6 +87,7 @@
     "preset": "jest-preset-preact",
     "setupFilesAfterEnv": [
       "<rootDir>/src/setupTests.ts"
-    ]
+    ],
+    "moduleDirectories": ["./node_modules", "./src"]
   }
 }
