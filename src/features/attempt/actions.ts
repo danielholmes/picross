@@ -1,6 +1,6 @@
 import { Duration } from "luxon";
-import { Matrix, matrixSet } from "../../utils/matrix";
-import { AttemptCellStatus, Problem, ProblemCoordinate } from "../../model";
+import { Matrix, matrixSet } from "utils/matrix";
+import { AttemptCellStatus, Problem, ProblemCoordinate } from "model";
 
 interface MarkAttemptAction {
   readonly type: "mark";

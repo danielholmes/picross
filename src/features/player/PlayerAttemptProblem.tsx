@@ -4,14 +4,17 @@ import noop from "lodash/noop";
 import classNames from "classnames";
 import { Duration } from "luxon";
 import usePrevious from "react-use/lib/usePrevious";
-import { AttemptCellStatus, isComplete, Problem } from "../../model";
+import { AttemptCellStatus, isComplete, Problem } from "model";
+import Grid from "components/grid";
+import {
+  applyAttemptAction,
+  createNewAttempt,
+  progressTime,
+} from "features/attempt";
+import Solution from "components/solution";
 import AttemptCell from "./AttemptCell";
-import createNewAttempt from "./createNewAttempt";
-import Grid from "../../components/grid";
-import { applyAttemptAction, progressTime } from "../attempt";
-import Solution from "../../components/solution";
 
-type AttemptProblemProps = {
+type PlayerAttemptProblemProps = {
   readonly problem: Problem;
   readonly onSuccess: () => void;
   readonly onFail: () => void;
@@ -29,12 +32,12 @@ interface ActiveDraggingState {
 
 type DraggingState = NotDraggingState | ActiveDraggingState;
 
-export default function AttemptProblem({
+export default function PlayerAttemptProblem({
   problem,
   onFail,
   onSuccess,
   onCancel,
-}: AttemptProblemProps): JSX.Element {
+}: PlayerAttemptProblemProps): JSX.Element {
   // Attempt state
   const [attempt, setAttempt] = useState(() => createNewAttempt(problem));
   const { incorrectMarks, timeRemaining, marks } = attempt;

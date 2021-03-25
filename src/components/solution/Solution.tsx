@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { useCallback } from "preact/hooks";
-import { Problem } from "../../model";
-import Grid from "../grid/Grid";
+import { Problem } from "model";
+import Grid from "components/grid";
 import SolutionCell from "./SolutionCell";
 
 interface SolutionProps {

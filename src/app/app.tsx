@@ -1,10 +1,10 @@
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
+import { AttemptProblem } from "features/player";
+import { Problem } from "model";
+import Landing from "features/landing";
+import AiAttempt from "features/ai";
 import { AppStateProvider } from "./context";
-import { AttemptProblem } from "../features/player";
-import { Problem } from "../model";
-import Landing from "../features/landing";
-import AiAttempt from "../features/ai";
 
 export default function App(): JSX.Element {
   const [setup, setSetup] = useState<

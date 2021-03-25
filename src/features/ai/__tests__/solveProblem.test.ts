@@ -1,8 +1,7 @@
-import { createProblemFromImage, isComplete } from "../../../model";
-import { createMatrix, transpose } from "../../../utils/matrix";
+import { createProblemFromImage, isComplete } from "model";
+import { createMatrix, transpose } from "utils/matrix";
+import { applyAttemptActions, createNewAttempt } from "features/attempt";
 import { solveNextStep } from "../solveProblem";
-import createNewAttempt from "../../player/createNewAttempt";
-import { applyAttemptActions } from "../../attempt";
 
 describe("solveProblem", () => {
   it("solves correctly for a solid column", () => {

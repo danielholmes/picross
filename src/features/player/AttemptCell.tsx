@@ -2,7 +2,7 @@ import { h, JSX } from "preact";
 import classNames from "classnames";
 import { memo } from "preact/compat";
 import { Duration } from "luxon";
-import { AttemptCellStatus } from "../../model";
+import { AttemptCellStatus } from "model";
 
 type AttemptCellProps = {
   readonly className?: string;

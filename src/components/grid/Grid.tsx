@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import range from "lodash/range";
-import { Problem } from "../../model";
+import { Problem } from "model";
 
 interface GridProps {
   readonly problem: Problem;

@@ -1,10 +1,10 @@
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
-import { createProblemFromImage, Problem } from "../../model";
-import { createMatrixWithFactory } from "../../utils/matrix";
-import { useAppState } from "../../app";
-import { createProblemFromSource, ProblemSource } from "../library";
-import { sampleOrThrow } from "../../utils/array";
+import { createProblemFromImage, Problem } from "model";
+import { createMatrixWithFactory } from "utils/matrix";
+import { useAppState } from "app";
+import { createProblemFromSource, ProblemSource } from "features/library";
+import { sampleOrThrow } from "utils/array";
 
 type ControlType = "ai" | "player";
 

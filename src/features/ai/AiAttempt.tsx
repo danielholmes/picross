@@ -1,16 +1,19 @@
 import { h, JSX } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import noop from "lodash/noop";
-import { isComplete, Problem } from "../../model";
-import Grid from "../../components/grid";
+import { isComplete, Problem } from "model";
+import Grid from "components/grid";
+import {
+  applyAttemptActions,
+  createNewAttempt,
+  ProblemAttempt,
+} from "features/attempt";
 import {
   NextSolveStep,
   solveNextStep,
   startSolvingProblem,
 } from "./solveProblem";
 import AiAttemptCell from "./AiAttemptCell";
-import { applyAttemptActions, ProblemAttempt } from "../attempt";
-import createNewAttempt from "../player/createNewAttempt";
 
 interface AiAttemptProps {
   readonly problem: Problem;

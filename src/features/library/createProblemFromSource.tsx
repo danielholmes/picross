@@ -1,8 +1,8 @@
 import { h, JSX, render } from "preact";
 import html2Canvas from "html2canvas";
+import { createProblemFromImage, Problem } from "model";
+import { createMatrixWithFactory } from "utils/matrix";
 import { ProblemSource } from "./model";
-import { createProblemFromImage, Problem } from "../../model";
-import { createMatrixWithFactory } from "../../utils/matrix";
 
 const channelsPerPixel = 4;
 const whiteChannelValue = 255;

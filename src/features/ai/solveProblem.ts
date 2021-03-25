@@ -6,10 +6,10 @@ import {
   isComplete,
   Problem,
   ProblemCoordinate,
-} from "../../model";
-import { getMatrixColumn, getMatrixRow } from "../../utils/matrix";
-import { filledArray } from "../../utils/array";
-import { ProblemAttempt, ProblemAttemptAction } from "../attempt";
+} from "model";
+import { getMatrixColumn, getMatrixRow } from "utils/matrix";
+import { filledArray } from "utils/array";
+import { ProblemAttempt, ProblemAttemptAction } from "features/attempt";
 
 export type NextSolveStep = {
   readonly type: "column" | "row";

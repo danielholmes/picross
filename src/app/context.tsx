@@ -1,7 +1,7 @@
 import { JSX, h, ComponentChildren, createContext } from "preact";
 import { useCallback, useContext, useState } from "preact/hooks";
+import { library } from "features/library";
 import { AppState } from "./state";
-import { library } from "../features/library";
 
 type AppDispatch = () => void;
 
