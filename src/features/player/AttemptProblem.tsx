@@ -2,13 +2,13 @@ import { h, JSX } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import noop from "lodash/noop";
 import classNames from "classnames";
-import {Duration} from "luxon";
-import usePrevious from "react-use/lib/usePrevious"
+import { Duration } from "luxon";
+import usePrevious from "react-use/lib/usePrevious";
 import { AttemptCellStatus, isComplete, Problem } from "../../model";
 import AttemptCell from "./AttemptCell";
 import createNewAttempt from "./createNewAttempt";
 import Grid from "../../components/grid";
-import {applySolveAction, progressTime} from "../attempt";
+import { applySolveAction, progressTime } from "../attempt";
 
 type AttemptProblemProps = {
   readonly problem: Problem;
@@ -77,7 +77,9 @@ export default function AttemptProblem({
       return noop;
     }
     const intervalId = setInterval(() => {
-      setAttempt((previous) => progressTime(previous, Duration.fromObject({ second: 1 })));
+      setAttempt((previous) =>
+        progressTime(previous, Duration.fromObject({ second: 1 }))
+      );
     }, 1000);
     return (): void => {
       clearTimeout(intervalId);
@@ -117,11 +119,10 @@ export default function AttemptProblem({
   const tryAndApplyMark = useCallback(
     (x: number, y: number, newStatus: AttemptCellStatus) => {
       setAttempt((previous) =>
-        applySolveAction(
-          problem,
-          previous,
-          { type: newStatus ? "mark" : "unmark", coordinate: { x, y } }
-        )
+        applySolveAction(problem, previous, {
+          type: newStatus ? "mark" : "unmark",
+          coordinate: { x, y },
+        })
       );
     },
     [problem]
@@ -129,11 +130,14 @@ export default function AttemptProblem({
   const numIncorrectMarks = incorrectMarks.length;
   const previousNumIncorrectMarks = usePrevious(numIncorrectMarks);
   useEffect(() => {
-    if (previousNumIncorrectMarks !== undefined && numIncorrectMarks > previousNumIncorrectMarks) {
+    if (
+      previousNumIncorrectMarks !== undefined &&
+      numIncorrectMarks > previousNumIncorrectMarks
+    ) {
       setDragging({ type: "not-dragging" });
       setShowIncorrect(true);
     }
-  }, [numIncorrectMarks, previousNumIncorrectMarks])
+  }, [numIncorrectMarks, previousNumIncorrectMarks]);
 
   // Start using tool
   const onCellMouseDown = useCallback(

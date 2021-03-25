@@ -3,9 +3,7 @@ import { Problem } from "../../model";
 import { createMatrix } from "../../utils/matrix";
 import { ProblemAttempt } from "../attempt";
 
-export default function createNewAttempt(
-  problem: Problem
-): ProblemAttempt {
+export default function createNewAttempt(problem: Problem): ProblemAttempt {
   return {
     incorrectMarks: [],
     timeRemaining: Duration.fromMillis(30 * 60 * 1000),

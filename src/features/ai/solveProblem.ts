@@ -4,7 +4,7 @@ import range from "lodash/range";
 import { AttemptCellStatus, Problem } from "../../model";
 import { getMatrixColumn, getMatrixRow } from "../../utils/matrix";
 import { filledArray } from "../../utils/array";
-import {ProblemAttempt, SolveAction} from "../attempt";
+import { ProblemAttempt, SolveAction } from "../attempt";
 
 type SolveStage = {
   readonly type: "column" | "row";

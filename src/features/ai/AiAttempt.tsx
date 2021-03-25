@@ -5,7 +5,7 @@ import { isComplete, Problem } from "../../model";
 import Grid from "../../components/grid";
 import solveProblem, { SolveState } from "./solveProblem";
 import AiAttemptCell from "./AiAttemptCell";
-import {applySolveActions, ProblemAttempt} from "../attempt";
+import { applySolveActions, ProblemAttempt } from "../attempt";
 import createNewAttempt from "../player/createNewAttempt";
 
 interface AiAttemptProps {
@@ -73,7 +73,11 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
       }
 
       return {
-        attempt: applySolveActions(problem, previousAttempt, nextResult.value.actions),
+        attempt: applySolveActions(
+          problem,
+          previousAttempt,
+          nextResult.value.actions
+        ),
         step: nextResult.value,
         generator,
       };
@@ -95,8 +99,9 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
       <AiAttemptCell
         status={marks[x][y]}
         highlighted={
-          !isAttemptComplete &&
-          (nextLine?.type === "column" && x === nextLine.index) ||
+          (!isAttemptComplete &&
+            nextLine?.type === "column" &&
+            x === nextLine.index) ||
           (nextLine?.type === "row" && y === nextLine.index)
         }
       />

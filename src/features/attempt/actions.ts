@@ -1,6 +1,6 @@
 import { Duration } from "luxon";
 import { Matrix, matrixSet } from "../../utils/matrix";
-import {AttemptCellStatus, Problem, ProblemCoordinate} from "../../model";
+import { AttemptCellStatus, Problem, ProblemCoordinate } from "../../model";
 
 interface MarkSolveAction {
   readonly type: "mark";
@@ -61,16 +61,14 @@ function applyMarkAction(
 
   return {
     ...attempt,
-    marks: matrixSet(
-      attempt.marks,
-      x,
-      y,
-      true
-    ),
-  }
+    marks: matrixSet(attempt.marks, x, y, true),
+  };
 }
 
-function applyUnmarkAction(attempt: ProblemAttempt, action: UnmarkSolveAction): ProblemAttempt {
+function applyUnmarkAction(
+  attempt: ProblemAttempt,
+  action: UnmarkSolveAction
+): ProblemAttempt {
   return {
     ...attempt,
     marks: matrixSet(
@@ -79,7 +77,7 @@ function applyUnmarkAction(attempt: ProblemAttempt, action: UnmarkSolveAction): 
       action.coordinate.y,
       false
     ),
-  }
+  };
 }
 
 export function applySolveAction(
@@ -102,12 +100,18 @@ export function applySolveActions(
   previousAttempt: ProblemAttempt,
   actions: ReadonlyArray<SolveAction>
 ): ProblemAttempt {
-  return actions.reduce((attempt, action) => applySolveAction(problem, attempt, action), previousAttempt);
+  return actions.reduce(
+    (attempt, action) => applySolveAction(problem, attempt, action),
+    previousAttempt
+  );
 }
 
-export function progressTime(attempt: ProblemAttempt, duration: Duration): ProblemAttempt {
+export function progressTime(
+  attempt: ProblemAttempt,
+  duration: Duration
+): ProblemAttempt {
   return {
     ...attempt,
     timeRemaining: attempt.timeRemaining.minus(duration),
-  }
+  };
 }
