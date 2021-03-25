@@ -3,19 +3,19 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import noop from "lodash/noop";
 import { isComplete, Problem } from "../../model";
 import Grid from "../../components/grid";
-import solveProblem, { applySolveActions, SolveState } from "./solveProblem";
+import solveProblem, { SolveState } from "./solveProblem";
 import AiAttemptCell from "./AiAttemptCell";
-import { AiProblemAttempt } from "./model";
-import { createMatrix } from "../../utils/matrix";
+import {applySolveActions, ProblemAttempt} from "../attempt";
+import createNewAttempt from "../player/createNewAttempt";
 
 interface AiAttemptProps {
   readonly problem: Problem;
 }
 
 interface AiState {
-  readonly attempt: AiProblemAttempt;
+  readonly attempt: ProblemAttempt;
   readonly step?: SolveState;
-  readonly generator: Generator<SolveState, void, AiProblemAttempt>;
+  readonly generator: Generator<SolveState, void, ProblemAttempt>;
 }
 
 const minimumSpeed = 0;
@@ -25,13 +25,7 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
   // Attempt
   const [{ attempt, step }, setAiState] = useState<AiState>(
     (): AiState => {
-      const initAttempt = {
-        marks: createMatrix(
-          problem.image.length,
-          problem.image[0].length,
-          undefined
-        ),
-      };
+      const initAttempt = createNewAttempt(problem);
       const newGenerator = solveProblem(problem);
       const first = newGenerator.next(initAttempt);
 
@@ -41,7 +35,7 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
       }
 
       const { actions } = first.value;
-      const newAttempt = applySolveActions(initAttempt, actions);
+      const newAttempt = applySolveActions(problem, initAttempt, actions);
       return {
         attempt: newAttempt,
         step: first.value,
@@ -79,12 +73,12 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
       }
 
       return {
-        attempt: applySolveActions(previousAttempt, nextResult.value.actions),
+        attempt: applySolveActions(problem, previousAttempt, nextResult.value.actions),
         step: nextResult.value,
         generator,
       };
     });
-  }, []);
+  }, [problem]);
   useEffect(() => {
     if (speed === 0 || isAttemptComplete) {
       return noop;
@@ -101,12 +95,13 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
       <AiAttemptCell
         status={marks[x][y]}
         highlighted={
+          !isAttemptComplete &&
           (nextLine?.type === "column" && x === nextLine.index) ||
           (nextLine?.type === "row" && y === nextLine.index)
         }
       />
     ),
-    [marks, nextLine]
+    [marks, nextLine, isAttemptComplete]
   );
 
   return (

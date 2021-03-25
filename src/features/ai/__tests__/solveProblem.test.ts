@@ -1,14 +1,13 @@
 import { createProblemFromImage } from "../../../model";
 import { createMatrix, transpose } from "../../../utils/matrix";
 import solveProblem from "../solveProblem";
+import createNewAttempt from "../../player/createNewAttempt";
 
 describe("solveProblem", () => {
   it("solves correctly for a full solid square", () => {
     const problem = createProblemFromImage(createMatrix(3, 3, true));
     const solver = solveProblem(problem);
-    const attempt0 = {
-      marks: createMatrix(3, 3, undefined),
-    };
+    const attempt0 = createNewAttempt(problem);
 
     // Initial, before start state
     const initState = solver.next(attempt0).value;
@@ -46,13 +45,7 @@ describe("solveProblem", () => {
         [false, true],
       ])
     );
-    const attempt0 = {
-      marks: createMatrix(
-        problem.image.length,
-        problem.image[0].length,
-        undefined
-      ),
-    };
+    const attempt0 = createNewAttempt(problem);
     const solver = solveProblem(problem);
 
     solver.next(attempt0);

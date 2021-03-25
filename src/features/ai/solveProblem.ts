@@ -1,26 +1,15 @@
 import flatMap from "lodash/flatMap";
 import sum from "lodash/sum";
 import range from "lodash/range";
-import { AttemptCellStatus, Problem, ProblemCoordinate } from "../../model";
-import { AiProblemAttempt } from "./model";
-import { getMatrixColumn, getMatrixRow, matrixSet } from "../../utils/matrix";
+import { AttemptCellStatus, Problem } from "../../model";
+import { getMatrixColumn, getMatrixRow } from "../../utils/matrix";
 import { filledArray } from "../../utils/array";
+import {ProblemAttempt, SolveAction} from "../attempt";
 
 type SolveStage = {
   readonly type: "column" | "row";
   readonly index: number;
 };
-
-interface MarkSolveAction {
-  readonly type: "mark";
-  readonly coordinate: ProblemCoordinate;
-}
-interface UnmarkSolveAction {
-  readonly type: "unmark";
-  readonly coordinate: ProblemCoordinate;
-}
-
-type SolveAction = MarkSolveAction | UnmarkSolveAction;
 
 export interface SolveState {
   readonly actions: ReadonlyArray<SolveAction>;
@@ -28,7 +17,7 @@ export interface SolveState {
 }
 
 function getNewNextLine(
-  attempt: AiProblemAttempt,
+  attempt: ProblemAttempt,
   { type, index }: SolveStage
 ): SolveStage {
   const numCols = attempt.marks.length;
@@ -63,7 +52,7 @@ function isAttemptLineFilled(line: ReadonlyArray<AttemptCellStatus>): boolean {
 }
 
 function getNewNonFilledNextLine(
-  attempt: AiProblemAttempt,
+  attempt: ProblemAttempt,
   stage: SolveStage
 ): SolveStage {
   const potential = getNewNextLine(attempt, stage);
@@ -154,7 +143,7 @@ function solveLine(
 
 function stepAttempt(
   problem: Problem,
-  attempt: AiProblemAttempt,
+  attempt: ProblemAttempt,
   current: SolveStage
 ): ReadonlyArray<SolveAction> {
   if (current.type === "column") {
@@ -200,9 +189,9 @@ function stepAttempt(
 
 function* solveNextStep(
   problem: Problem,
-  attempt: AiProblemAttempt,
+  attempt: ProblemAttempt,
   { nextLine }: SolveState
-): Generator<SolveState, void, AiProblemAttempt> {
+): Generator<SolveState, void, ProblemAttempt> {
   const actions = stepAttempt(problem, attempt, nextLine);
 
   const newNextLine = getNewNonFilledNextLine(attempt, nextLine);
@@ -216,7 +205,7 @@ function* solveNextStep(
 
 export default function* solveProblem(
   problem: Problem
-): Generator<SolveState, void, AiProblemAttempt> {
+): Generator<SolveState, void, ProblemAttempt> {
   const initialState = {
     actions: [],
     nextLine: {
@@ -226,39 +215,4 @@ export default function* solveProblem(
   };
   const attempt = yield initialState;
   yield* solveNextStep(problem, attempt, initialState);
-}
-
-export function applySolveAction(
-  attempt: AiProblemAttempt,
-  action: SolveAction
-): AiProblemAttempt {
-  switch (action.type) {
-    case "mark":
-      return {
-        marks: matrixSet(
-          attempt.marks,
-          action.coordinate.x,
-          action.coordinate.y,
-          true
-        ),
-      };
-    case "unmark":
-      return {
-        marks: matrixSet(
-          attempt.marks,
-          action.coordinate.x,
-          action.coordinate.y,
-          false
-        ),
-      };
-    default:
-      throw new Error("Unexpected action type");
-  }
-}
-
-export function applySolveActions(
-  previousAttempt: AiProblemAttempt,
-  actions: ReadonlyArray<SolveAction>
-): AiProblemAttempt {
-  return actions.reduce(applySolveAction, previousAttempt);
 }
