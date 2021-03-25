@@ -2,16 +2,16 @@ import { Duration } from "luxon";
 import { Matrix, matrixSet } from "../../utils/matrix";
 import { AttemptCellStatus, Problem, ProblemCoordinate } from "../../model";
 
-interface MarkSolveAction {
+interface MarkAttemptAction {
   readonly type: "mark";
   readonly coordinate: ProblemCoordinate;
 }
-interface UnmarkSolveAction {
+interface UnmarkAttemptAction {
   readonly type: "unmark";
   readonly coordinate: ProblemCoordinate;
 }
 
-export type SolveAction = MarkSolveAction | UnmarkSolveAction;
+export type ProblemAttemptAction = MarkAttemptAction | UnmarkAttemptAction;
 
 interface IncorrectMark {
   readonly position: ProblemCoordinate;
@@ -52,7 +52,7 @@ function incorrectMark(
 function applyMarkAction(
   problem: Problem,
   attempt: ProblemAttempt,
-  { coordinate: { x, y } }: MarkSolveAction
+  { coordinate: { x, y } }: MarkAttemptAction
 ): ProblemAttempt {
   const cellNeedsMark = problem.image[x][y];
   if (!cellNeedsMark) {
@@ -67,7 +67,7 @@ function applyMarkAction(
 
 function applyUnmarkAction(
   attempt: ProblemAttempt,
-  action: UnmarkSolveAction
+  action: UnmarkAttemptAction
 ): ProblemAttempt {
   return {
     ...attempt,
@@ -80,10 +80,10 @@ function applyUnmarkAction(
   };
 }
 
-export function applySolveAction(
+export function applyAttemptAction(
   problem: Problem,
   attempt: ProblemAttempt,
-  action: SolveAction
+  action: ProblemAttemptAction
 ): ProblemAttempt {
   switch (action.type) {
     case "mark":
@@ -95,13 +95,13 @@ export function applySolveAction(
   }
 }
 
-export function applySolveActions(
+export function applyAttemptActions(
   problem: Problem,
   previousAttempt: ProblemAttempt,
-  actions: ReadonlyArray<SolveAction>
+  actions: ReadonlyArray<ProblemAttemptAction>
 ): ProblemAttempt {
   return actions.reduce(
-    (attempt, action) => applySolveAction(problem, attempt, action),
+    (attempt, action) => applyAttemptAction(problem, attempt, action),
     previousAttempt
   );
 }

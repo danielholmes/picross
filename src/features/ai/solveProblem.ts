@@ -1,25 +1,30 @@
 import flatMap from "lodash/flatMap";
 import sum from "lodash/sum";
 import range from "lodash/range";
-import { AttemptCellStatus, Problem } from "../../model";
+import {
+  AttemptCellStatus,
+  isComplete,
+  Problem,
+  ProblemCoordinate,
+} from "../../model";
 import { getMatrixColumn, getMatrixRow } from "../../utils/matrix";
 import { filledArray } from "../../utils/array";
-import { ProblemAttempt, SolveAction } from "../attempt";
+import { ProblemAttempt, ProblemAttemptAction } from "../attempt";
 
-type SolveStage = {
+export type NextSolveStep = {
   readonly type: "column" | "row";
   readonly index: number;
 };
 
 export interface SolveState {
-  readonly actions: ReadonlyArray<SolveAction>;
-  readonly nextLine: SolveStage;
+  readonly actions: ReadonlyArray<ProblemAttemptAction>;
+  readonly nextLine: NextSolveStep;
 }
 
 function getNewNextLine(
   attempt: ProblemAttempt,
-  { type, index }: SolveStage
-): SolveStage {
+  { type, index }: NextSolveStep
+): NextSolveStep {
   const numCols = attempt.marks.length;
   if (type === "column") {
     if (index >= numCols - 1) {
@@ -53,8 +58,8 @@ function isAttemptLineFilled(line: ReadonlyArray<AttemptCellStatus>): boolean {
 
 function getNewNonFilledNextLine(
   attempt: ProblemAttempt,
-  stage: SolveStage
-): SolveStage {
+  stage: NextSolveStep
+): NextSolveStep {
   const potential = getNewNextLine(attempt, stage);
   const potentialLine =
     potential.type === "column"
@@ -115,11 +120,12 @@ function createPermutations(
 
 function solveLine(
   line: ReadonlyArray<AttemptCellStatus>,
-  hints: ReadonlyArray<number>
-): ReadonlyArray<AttemptCellStatus> {
+  hints: ReadonlyArray<number>,
+  getCoordinate: (i: number) => ProblemCoordinate
+): ReadonlyArray<ProblemAttemptAction> {
   // Already solved
   if (isAttemptLineFilled(line)) {
-    return line;
+    return [];
   }
 
   const allPermutations = createPermutations(hints, line);
@@ -129,7 +135,8 @@ function solveLine(
     );
   }
 
-  return allPermutations.slice(1).reduce(
+  // TODO: Probably a more efficient way to perform these 2 reduces
+  const newLine = allPermutations.slice(1).reduce(
     (previous, perm) =>
       previous.map((c, i) => {
         if (c === perm[i]) {
@@ -139,21 +146,8 @@ function solveLine(
       }),
     allPermutations[0]
   );
-}
-
-function stepAttempt(
-  problem: Problem,
-  attempt: ProblemAttempt,
-  current: SolveStage
-): ReadonlyArray<SolveAction> {
-  if (current.type === "column") {
-    const line = attempt.marks[current.index];
-    const newLine = solveLine(line, problem.columnHints[current.index]);
-    if (line === newLine) {
-      return [];
-    }
-    // TODO: solveLine should return actions instead
-    return newLine.reduce((previous, status, i): ReadonlyArray<SolveAction> => {
+  return newLine.reduce(
+    (previous, status, i): ReadonlyArray<ProblemAttemptAction> => {
       if (status === undefined || status === line[i]) {
         return previous;
       }
@@ -161,58 +155,54 @@ function stepAttempt(
         ...previous,
         {
           type: status ? "mark" : "unmark",
-          coordinate: { x: current.index, y: i },
+          coordinate: getCoordinate(i),
         },
       ];
-    }, [] as ReadonlyArray<SolveAction>);
+    },
+    [] as ReadonlyArray<ProblemAttemptAction>
+  );
+}
+
+function stepAttempt(
+  problem: Problem,
+  attempt: ProblemAttempt,
+  current: NextSolveStep
+): ReadonlyArray<ProblemAttemptAction> {
+  if (current.type === "column") {
+    const line = attempt.marks[current.index];
+    return solveLine(line, problem.columnHints[current.index], (i) => ({
+      x: current.index,
+      y: i,
+    }));
   }
 
   const line = getMatrixRow(attempt.marks, current.index);
-  // TODO: solveLine should return actions instead
-  const newLine = solveLine(line, problem.rowHints[current.index]);
-  if (line === newLine) {
-    return [];
-  }
-  return newLine.reduce((previous, status, i): ReadonlyArray<SolveAction> => {
-    if (status === undefined || status === line[i]) {
-      return previous;
-    }
-    return [
-      ...previous,
-      {
-        type: status ? "mark" : "unmark",
-        coordinate: { x: i, y: current.index },
-      },
-    ];
-  }, [] as ReadonlyArray<SolveAction>);
+  return solveLine(line, problem.rowHints[current.index], (i) => ({
+    x: i,
+    y: current.index,
+  }));
 }
 
-function* solveNextStep(
+export function startSolvingProblem(): NextSolveStep {
+  return {
+    type: "column" as const,
+    index: 0,
+  };
+}
+
+export function solveNextStep(
   problem: Problem,
   attempt: ProblemAttempt,
-  { nextLine }: SolveState
-): Generator<SolveState, void, ProblemAttempt> {
-  const actions = stepAttempt(problem, attempt, nextLine);
+  nextLine: NextSolveStep
+): SolveState {
+  if (isComplete(problem, attempt.marks)) {
+    throw new Error("Already completed");
+  }
 
+  const actions = stepAttempt(problem, attempt, nextLine);
   const newNextLine = getNewNonFilledNextLine(attempt, nextLine);
-  const nextState = {
+  return {
     nextLine: newNextLine,
     actions,
   };
-  const newAttempt = yield nextState;
-  return yield* solveNextStep(problem, newAttempt, nextState);
-}
-
-export default function* solveProblem(
-  problem: Problem
-): Generator<SolveState, void, ProblemAttempt> {
-  const initialState = {
-    actions: [],
-    nextLine: {
-      type: "column" as const,
-      index: 0,
-    },
-  };
-  const attempt = yield initialState;
-  yield* solveNextStep(problem, attempt, initialState);
 }

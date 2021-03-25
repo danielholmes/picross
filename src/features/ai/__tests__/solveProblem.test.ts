@@ -1,38 +1,27 @@
-import { createProblemFromImage } from "../../../model";
+import { createProblemFromImage, isComplete } from "../../../model";
 import { createMatrix, transpose } from "../../../utils/matrix";
-import solveProblem from "../solveProblem";
+import { solveNextStep } from "../solveProblem";
 import createNewAttempt from "../../player/createNewAttempt";
+import { applyAttemptActions } from "../../attempt";
 
 describe("solveProblem", () => {
-  it("solves correctly for a full solid square", () => {
+  it("solves correctly for a solid column", () => {
     const problem = createProblemFromImage(createMatrix(3, 3, true));
-    const solver = solveProblem(problem);
     const attempt0 = createNewAttempt(problem);
-
-    // Initial, before start state
-    const initState = solver.next(attempt0).value;
-    expect(initState).toEqual({
-      actions: [],
-      nextLine: {
-        type: "column",
-        index: 0,
-      },
+    const nextStep = solveNextStep(problem, attempt0, {
+      type: "column",
+      index: 0,
     });
 
-    // First step
-    const firstStep = solver.next(attempt0);
-    expect(firstStep).toEqual({
-      done: false,
-      value: {
-        actions: [
-          { type: "mark", coordinate: { x: 0, y: 0 } },
-          { type: "mark", coordinate: { x: 0, y: 1 } },
-          { type: "mark", coordinate: { x: 0, y: 2 } },
-        ],
-        nextLine: {
-          type: "column",
-          index: 1,
-        },
+    expect(nextStep).toEqual({
+      actions: [
+        { type: "mark", coordinate: { x: 0, y: 0 } },
+        { type: "mark", coordinate: { x: 0, y: 1 } },
+        { type: "mark", coordinate: { x: 0, y: 2 } },
+      ],
+      nextLine: {
+        type: "column",
+        index: 1,
       },
     });
   });
@@ -46,50 +35,48 @@ describe("solveProblem", () => {
       ])
     );
     const attempt0 = createNewAttempt(problem);
-    const solver = solveProblem(problem);
+    const nextStep = solveNextStep(problem, attempt0, {
+      type: "column",
+      index: 0,
+    });
 
-    solver.next(attempt0);
-    const firstStep = solver.next(attempt0);
-    expect(firstStep).toEqual({
-      done: false,
-      value: {
-        actions: [
-          { type: "unmark", coordinate: { x: 0, y: 0 } },
-          { type: "unmark", coordinate: { x: 0, y: 1 } },
-          { type: "unmark", coordinate: { x: 0, y: 2 } },
-        ],
-        nextLine: {
-          type: "column",
-          index: 1,
-        },
+    expect(nextStep).toEqual({
+      actions: [
+        { type: "unmark", coordinate: { x: 0, y: 0 } },
+        { type: "unmark", coordinate: { x: 0, y: 1 } },
+        { type: "unmark", coordinate: { x: 0, y: 2 } },
+      ],
+      nextLine: {
+        type: "column",
+        index: 1,
       },
     });
   });
 
-  it.skip("fully solves more complex example", () => {
+  it("handles already completed correctly", () => {
     const problem = createProblemFromImage(
       transpose([
-        [false, true, true],
-        [false, true, false],
-        [false, true, true],
+        [false, true],
+        [false, true],
+        [false, true],
       ])
     );
-    const solver = solveProblem(problem);
-
-    solver.next();
-    solver.next(); // Col 1
-    solver.next(); // Col 2
-    const result = solver.next(); // Col 3 - complete
-    expect(result).toEqual({
-      done: true,
-      value: {
-        marks: transpose([
-          [false, true, true],
-          [false, true, false],
-          [false, true, true],
-        ]),
-      },
-    });
+    const completedAttempt = applyAttemptActions(
+      problem,
+      createNewAttempt(problem),
+      [
+        { type: "mark", coordinate: { x: 1, y: 0 } },
+        { type: "mark", coordinate: { x: 1, y: 1 } },
+        { type: "mark", coordinate: { x: 1, y: 2 } },
+      ]
+    );
+    expect(isComplete(problem, completedAttempt.marks)).toBe(true);
+    expect(() =>
+      solveNextStep(problem, completedAttempt, {
+        type: "column",
+        index: 1,
+      })
+    ).toThrowError("Already completed");
   });
 
   // Single col only (edge case)

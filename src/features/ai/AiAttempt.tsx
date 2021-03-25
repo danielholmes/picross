@@ -3,9 +3,13 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import noop from "lodash/noop";
 import { isComplete, Problem } from "../../model";
 import Grid from "../../components/grid";
-import solveProblem, { SolveState } from "./solveProblem";
+import {
+  NextSolveStep,
+  solveNextStep,
+  startSolvingProblem,
+} from "./solveProblem";
 import AiAttemptCell from "./AiAttemptCell";
-import { applySolveActions, ProblemAttempt } from "../attempt";
+import { applyAttemptActions, ProblemAttempt } from "../attempt";
 import createNewAttempt from "../player/createNewAttempt";
 
 interface AiAttemptProps {
@@ -14,8 +18,7 @@ interface AiAttemptProps {
 
 interface AiState {
   readonly attempt: ProblemAttempt;
-  readonly step?: SolveState;
-  readonly generator: Generator<SolveState, void, ProblemAttempt>;
+  readonly solveStep?: NextSolveStep;
 }
 
 const minimumSpeed = 0;
@@ -23,29 +26,23 @@ const maximumSpeed = 20;
 
 export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
   // Attempt
-  const [{ attempt, step }, setAiState] = useState<AiState>(
+  const [{ attempt, solveStep }, setAiState] = useState<AiState>(
     (): AiState => {
       const initAttempt = createNewAttempt(problem);
-      const newGenerator = solveProblem(problem);
-      const first = newGenerator.next(initAttempt);
 
-      if (first.done) {
-        // TODO: Don't need generator if complete
-        return { attempt: initAttempt, generator: newGenerator };
+      if (isComplete(problem, initAttempt.marks)) {
+        return { attempt: initAttempt };
       }
 
-      const { actions } = first.value;
-      const newAttempt = applySolveActions(problem, initAttempt, actions);
+      const firstStep = startSolvingProblem();
       return {
-        attempt: newAttempt,
-        step: first.value,
-        generator: newGenerator,
+        attempt: initAttempt,
+        solveStep: firstStep,
       };
     }
   );
-  const isAttemptComplete = isComplete(problem, attempt.marks);
   const { marks } = attempt;
-  const nextLine = step?.nextLine;
+  const isAttemptComplete = isComplete(problem, marks);
   // TODO: Can probably cancel generator
   // useEffect(() => {
   //   // Unfortunately this results in running twice (the state initialiser).
@@ -65,23 +62,31 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
     setSpeed(0);
   };
   const progressSolution = useCallback(() => {
-    setAiState(({ attempt: previousAttempt, generator }) => {
-      const nextResult = generator.next(previousAttempt);
-      if (nextResult.done) {
-        // TODO: Don't need generator if complete
-        return { attempt: previousAttempt, generator };
-      }
+    setAiState(
+      ({ attempt: previousAttempt, solveStep: previousSolveState }) => {
+        if (!previousSolveState) {
+          throw new Error("Invalid state - no step");
+        }
 
-      return {
-        attempt: applySolveActions(
+        const nextResult = solveNextStep(
           problem,
           previousAttempt,
-          nextResult.value.actions
-        ),
-        step: nextResult.value,
-        generator,
-      };
-    });
+          previousSolveState
+        );
+        if (!nextResult.nextLine) {
+          return { attempt: previousAttempt, solveStep: undefined };
+        }
+
+        return {
+          attempt: applyAttemptActions(
+            problem,
+            previousAttempt,
+            nextResult.actions
+          ),
+          solveStep: nextResult.nextLine,
+        };
+      }
+    );
   }, [problem]);
   useEffect(() => {
     if (speed === 0 || isAttemptComplete) {
@@ -100,13 +105,13 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
         status={marks[x][y]}
         highlighted={
           (!isAttemptComplete &&
-            nextLine?.type === "column" &&
-            x === nextLine.index) ||
-          (nextLine?.type === "row" && y === nextLine.index)
+            solveStep?.type === "column" &&
+            x === solveStep.index) ||
+          (solveStep?.type === "row" && y === solveStep.index)
         }
       />
     ),
-    [marks, nextLine, isAttemptComplete]
+    [marks, solveStep, isAttemptComplete]
   );
 
   return (

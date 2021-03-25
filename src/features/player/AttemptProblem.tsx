@@ -8,7 +8,7 @@ import { AttemptCellStatus, isComplete, Problem } from "../../model";
 import AttemptCell from "./AttemptCell";
 import createNewAttempt from "./createNewAttempt";
 import Grid from "../../components/grid";
-import { applySolveAction, progressTime } from "../attempt";
+import { applyAttemptAction, progressTime } from "../attempt";
 
 type AttemptProblemProps = {
   readonly problem: Problem;
@@ -119,7 +119,7 @@ export default function AttemptProblem({
   const tryAndApplyMark = useCallback(
     (x: number, y: number, newStatus: AttemptCellStatus) => {
       setAttempt((previous) =>
-        applySolveAction(problem, previous, {
+        applyAttemptAction(problem, previous, {
           type: newStatus ? "mark" : "unmark",
           coordinate: { x, y },
         })
