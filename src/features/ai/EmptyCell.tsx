@@ -4,7 +4,7 @@ import { memo } from "preact/compat";
 import { formatPercent } from "utils/number";
 
 type EmptyCellProps = {
-  readonly probability?: { amount: number; ratio: number };
+  readonly probability?: number;
   readonly highlighted: boolean;
 };
 
@@ -16,11 +16,11 @@ function EmptyCell({ probability, highlighted }: EmptyCellProps): JSX.Element {
       })}
       style={{
         backgroundColor: probability
-          ? `rgba(255, 0, 0, ${probability.ratio})`
+          ? `rgba(255, 0, 0, ${probability ** 2})`
           : undefined,
       }}
     >
-      {probability && formatPercent(probability.amount)}
+      {probability && formatPercent(probability)}
     </div>
   );
 }

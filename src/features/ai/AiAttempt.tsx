@@ -9,7 +9,7 @@ import {
   createNewAttempt,
   ProblemAttempt,
 } from "features/attempt";
-import { getMatrixRows, reduceMatrixCells } from "utils/matrix";
+import { getMatrixRows } from "utils/matrix";
 import { SolveState, solveNextStep, startSolvingProblem } from "./solveProblem";
 import MarkedCell from "./MarkedCell";
 import EmptyCell from "./EmptyCell";
@@ -122,31 +122,7 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
 
       const probability = (() => {
         if (solveState?.type === "probability") {
-          const amount = solveState.probabilities[x][y];
-          if (amount === undefined) {
-            return undefined;
-          }
-
-          const maxProbability = reduceMatrixCells(
-            solveState.probabilities,
-            (previous, cell) => {
-              if (cell === undefined) {
-                return previous;
-              }
-              if (previous === undefined) {
-                return cell;
-              }
-              return Math.max(previous, cell);
-            },
-            undefined as number | undefined
-          );
-          if (maxProbability === undefined) {
-            return undefined;
-          }
-          return {
-            amount,
-            ratio: amount / maxProbability,
-          };
+          return solveState.probabilities[x][y];
         }
         return undefined;
       })();

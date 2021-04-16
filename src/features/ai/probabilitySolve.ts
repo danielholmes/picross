@@ -57,12 +57,7 @@ export function startProbabilitySolving(
   const probabilities = matrixZip(
     columnProbabilities,
     rowProbabilities,
-    (a, b) => {
-      if (a >= 1 || b >= 1) {
-        return 1;
-      }
-      return a * b;
-    }
+    Math.max
   );
 
   return {
