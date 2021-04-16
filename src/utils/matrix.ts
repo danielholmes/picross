@@ -1,3 +1,4 @@
+import flatMap from "lodash/flatMap";
 import range from "lodash/range";
 
 export type Matrix<T> = ReadonlyArray<ReadonlyArray<T>>;
@@ -51,6 +52,18 @@ export function getMatrixRows<T>(
   );
 }
 
+export function getMatrixRowIndices<T>(
+  matrix: Matrix<T>
+): ReadonlyArray<number> {
+  return range(0, matrix[0].length);
+}
+
+export function getMatrixColumnIndices<T>(
+  matrix: Matrix<T>
+): ReadonlyArray<number> {
+  return range(0, matrix.length);
+}
+
 export function getMatrixRow<T>(
   matrix: Matrix<T>,
   index: number
@@ -79,4 +92,29 @@ export function matrixSet<T>(
       return s;
     })
   );
+}
+
+export function matrixZip<T, R>(
+  matrix1: Matrix<T>,
+  matrix2: Matrix<T>,
+  zipper: (a: T, b: T) => R
+): Matrix<R> {
+  if (
+    matrix1.length !== matrix2.length ||
+    matrix1[0].length !== matrix2[0].length
+  ) {
+    throw new Error("Matrices must be same sizes");
+  }
+  return createMatrixWithFactory(matrix1.length, matrix1[0].length, (x, y) =>
+    zipper(matrix1[x][y], matrix2[x][y])
+  );
+}
+
+export function reduceMatrixCells<T, R>(
+  values: Matrix<T>,
+  reducer: (previous: R, item: T) => R,
+  init: R
+): R {
+  const allCells = flatMap(values);
+  return allCells.reduce(reducer, init);
 }
