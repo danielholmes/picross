@@ -40,9 +40,8 @@ Done via Github Actions which will deploy the site to <https://picross.danielhol
 
 ## TODO
 
- - Solver keep sets of "dirty" rows and columns and only visit those.
- - Need an AI solution for "stuck" situations - when dirty rows and columns is empty.
-   - Show percentages before choose
+ - Better ui feedback for which action about to take (2 step process)
+ - Respond if % doesn't work out (incorrect)
  - Add AI test for all library images
  - Use a UI framework and/or proper graphic treatment.
  - Stop "flash" when creating image

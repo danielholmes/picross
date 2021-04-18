@@ -3,6 +3,11 @@ import range from "lodash/range";
 
 export type Matrix<T> = ReadonlyArray<ReadonlyArray<T>>;
 
+export interface MatrixPosition {
+  readonly x: number;
+  readonly y: number;
+}
+
 export function createMatrixWithFactory<T>(
   width: number,
   height: number,
@@ -64,6 +69,14 @@ export function getMatrixColumnIndices<T>(
   return range(0, matrix.length);
 }
 
+export function getMatrixPositions<T>(
+  matrix: Matrix<T>
+): ReadonlyArray<MatrixPosition> {
+  const columnIndices = getMatrixColumnIndices(matrix);
+  const rowIndices = getMatrixColumnIndices(matrix);
+  return flatMap(columnIndices, (x) => rowIndices.map((y) => ({ x, y })));
+}
+
 export function getMatrixRow<T>(
   matrix: Matrix<T>,
   index: number
@@ -94,10 +107,10 @@ export function matrixSet<T>(
   );
 }
 
-export function matrixZip<T, R>(
-  matrix1: Matrix<T>,
-  matrix2: Matrix<T>,
-  zipper: (a: T, b: T) => R
+export function matrixZip<T1, T2, R>(
+  matrix1: Matrix<T1>,
+  matrix2: Matrix<T2>,
+  zipper: (a: T1, b: T2) => R
 ): Matrix<R> {
   if (
     matrix1.length !== matrix2.length ||
@@ -112,9 +125,51 @@ export function matrixZip<T, R>(
 
 export function reduceMatrixCells<T, R>(
   values: Matrix<T>,
-  reducer: (previous: R, item: T) => R,
+  reducer: (previous: R, item: T, position: MatrixPosition) => R,
   init: R
 ): R {
-  const allCells = flatMap(values);
-  return allCells.reduce(reducer, init);
+  const positions = getMatrixPositions(values);
+  return positions.reduce(
+    (previous, position) =>
+      reducer(previous, values[position.x][position.y], position),
+    init
+  );
+}
+
+export function findMatrixCellPosition<T>(
+  matrix: Matrix<T>,
+  finder: (value: T, position: MatrixPosition) => boolean
+): MatrixPosition | undefined {
+  return reduceMatrixCells(
+    matrix,
+    (previous, item, position) => {
+      if (previous) {
+        return previous;
+      }
+      if (finder(item, position)) {
+        return position;
+      }
+      return undefined;
+    },
+    undefined as MatrixPosition | undefined
+  );
+}
+
+export function findMatrixCellEntry<T>(
+  matrix: Matrix<T>,
+  finder: (value: T, position: MatrixPosition) => boolean
+): Readonly<[MatrixPosition, T]> | undefined {
+  return reduceMatrixCells(
+    matrix,
+    (previous, item, position) => {
+      if (previous) {
+        return previous;
+      }
+      if (finder(item, position)) {
+        return [position, item];
+      }
+      return undefined;
+    },
+    undefined as Readonly<[MatrixPosition, T]> | undefined
+  );
 }

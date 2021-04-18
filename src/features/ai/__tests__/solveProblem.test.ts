@@ -1,83 +1,85 @@
-import { createProblemFromImage, isComplete } from "model";
-import { createMatrix, transpose } from "utils/matrix";
-import { applyAttemptActions, createNewAttempt } from "features/attempt";
-import { solveNextStep } from "../solveProblem";
+import { createProblemFromImage } from "model";
+import { transpose } from "utils/matrix";
+import { createNewAttempt } from "features/attempt";
+import { Duration } from "luxon";
+import { getProbabilities } from "../solveProblem";
 
 describe("solveProblem", () => {
-  it.skip("solves correctly for a solid column", () => {
-    const problem = createProblemFromImage(createMatrix(3, 3, true));
-    const attempt0 = createNewAttempt(problem);
-    const nextStep = solveNextStep(problem, attempt0, {
-      type: "checkLine",
-      dirtyLines: [{ type: "column", index: 0 }],
+  describe("getProbabilities", () => {
+    it("gets correct for basic example", () => {
+      const problem = createProblemFromImage(
+        transpose([
+          [true, false, false],
+          [true, true, false],
+          [false, false, false],
+        ])
+      );
+      const attempt = createNewAttempt(problem);
+
+      const result = getProbabilities(problem, attempt);
+
+      expect(result).toMatchObject(
+        transpose([
+          [1 / 2, 1 / 3, 0],
+          [1, 1, 0],
+          [0, 0, 0],
+        ])
+      );
     });
 
-    expect(nextStep).toEqual({
-      actions: [
-        { type: "mark", coordinate: { x: 0, y: 0 } },
-        { type: "mark", coordinate: { x: 0, y: 1 } },
-        { type: "mark", coordinate: { x: 0, y: 2 } },
-      ],
-      solveState: {
-        type: "checkLine",
-        dirtyLines: [{ type: "column", index: 1 }],
-      },
+    it("gets correct for larger example", () => {
+      const problem = createProblemFromImage(
+        transpose([
+          [true, false, false, true],
+          [true, true, false, false],
+          [false, false, false, false],
+          [true, false, false, false],
+        ])
+      );
+      const attempt = createNewAttempt(problem);
+
+      const result = getProbabilities(problem, attempt);
+
+      expect(result).toMatchObject(
+        transpose([
+          [1, 1 / 3, 0, 2 / 3],
+          [1, 2 / 3, 0, 1 / 3],
+          [0, 0, 0, 0],
+          [1, 1 / 4, 0, 1 / 4],
+        ])
+      );
+    });
+
+    it("gets correct for attempts", () => {
+      const problem = createProblemFromImage(
+        transpose([
+          [true, false, false, true],
+          [true, true, false, false],
+          [false, false, false, false],
+          [true, false, false, false],
+        ])
+      );
+      const attempt = {
+        incorrectMarks: [],
+        timeRemaining: Duration.fromMillis(30 * 60 * 1000),
+        marks: transpose([
+          [true, false, false, true],
+          [true, true, false, false],
+          [undefined, undefined, undefined, undefined],
+          [undefined, undefined, undefined, undefined],
+        ]),
+      };
+
+      const result = getProbabilities(problem, attempt);
+
+      expect(result).toMatchObject(
+        transpose([
+          [undefined, undefined, undefined, undefined],
+          [undefined, undefined, undefined, undefined],
+          [0, 0, 0, 0],
+          [1, 0, 0, 0],
+        ])
+      );
     });
   });
-
-  it.skip("handles an empty col properly", () => {
-    const problem = createProblemFromImage(
-      transpose([
-        [false, true],
-        [false, true],
-        [false, true],
-      ])
-    );
-    const attempt0 = createNewAttempt(problem);
-    const nextStep = solveNextStep(problem, attempt0, {
-      type: "checkLine",
-      dirtyLines: [{ type: "column", index: 0 }],
-    });
-
-    expect(nextStep).toEqual({
-      actions: [
-        { type: "unmark", coordinate: { x: 0, y: 0 } },
-        { type: "unmark", coordinate: { x: 0, y: 1 } },
-        { type: "unmark", coordinate: { x: 0, y: 2 } },
-      ],
-      solveState: {
-        type: "checkLine",
-        dirtyLines: [{ type: "column", index: 1 }],
-      },
-    });
-  });
-
-  it.skip("handles already completed correctly", () => {
-    const problem = createProblemFromImage(
-      transpose([
-        [false, true],
-        [false, true],
-        [false, true],
-      ])
-    );
-    const completedAttempt = applyAttemptActions(
-      problem,
-      createNewAttempt(problem),
-      [
-        { type: "mark", coordinate: { x: 1, y: 0 } },
-        { type: "mark", coordinate: { x: 1, y: 1 } },
-        { type: "mark", coordinate: { x: 1, y: 2 } },
-      ]
-    );
-    expect(isComplete(problem, completedAttempt.marks)).toBe(true);
-    expect(() =>
-      solveNextStep(problem, completedAttempt, {
-        type: "checkLine",
-        dirtyLines: [{ type: "column", index: 1 }],
-      })
-    ).toThrowError("Already completed");
-  });
-
-  // Single col only (edge case)
-  // Single row only (edge case)
 });

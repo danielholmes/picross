@@ -5,22 +5,27 @@ import { formatPercent } from "utils/number";
 
 type EmptyCellProps = {
   readonly probability?: number;
-  readonly highlighted: boolean;
+  // readonly highlighted: boolean;
 };
 
-function EmptyCell({ probability, highlighted }: EmptyCellProps): JSX.Element {
+function EmptyCell({ probability }: EmptyCellProps): JSX.Element {
+  const backgroundColor = (() => {
+    if (probability === undefined) {
+      return undefined;
+    }
+    if (probability === 0) {
+      return "#aa3333";
+    }
+    return `rgba(120, 245, 57, ${probability ** 3})`;
+  })();
   return (
     <div
       className={classNames("problem-cell", {
-        "problem-highlighted": highlighted,
+        // "problem-highlighted": highlighted,
       })}
-      style={{
-        backgroundColor: probability
-          ? `rgba(255, 0, 0, ${probability ** 2})`
-          : undefined,
-      }}
+      style={{ backgroundColor }}
     >
-      {probability && formatPercent(probability)}
+      {probability !== undefined && formatPercent(probability)}
     </div>
   );
 }

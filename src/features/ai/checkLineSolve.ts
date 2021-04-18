@@ -1,9 +1,10 @@
 import { ProblemAttempt, ProblemAttemptAction } from "features/attempt";
-import { AttemptCellStatus, Problem, ProblemCoordinate } from "model";
+import { AttemptCellStatus, Problem } from "model";
 import {
   getMatrixColumnIndices,
   getMatrixRow,
   getMatrixRowIndices,
+  MatrixPosition,
 } from "utils/matrix";
 import uniqBy from "lodash/uniqBy";
 import { createAllLinePermutations } from "./solveUtils";
@@ -25,7 +26,7 @@ function isAttemptLineFilled(line: ReadonlyArray<AttemptCellStatus>): boolean {
 function solveLine(
   line: ReadonlyArray<AttemptCellStatus>,
   hints: ReadonlyArray<number>,
-  getCoordinate: (i: number) => ProblemCoordinate
+  getCoordinate: (i: number) => MatrixPosition
 ): ReadonlyArray<ProblemAttemptAction> {
   // Already solved
   if (isAttemptLineFilled(line)) {

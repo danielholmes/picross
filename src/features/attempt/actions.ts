@@ -1,20 +1,20 @@
 import { Duration } from "luxon";
-import { Matrix, matrixSet } from "utils/matrix";
-import { AttemptCellStatus, Problem, ProblemCoordinate } from "model";
+import { Matrix, MatrixPosition, matrixSet } from "utils/matrix";
+import { AttemptCellStatus, Problem } from "model";
 
 interface MarkAttemptAction {
   readonly type: "mark";
-  readonly coordinate: ProblemCoordinate;
+  readonly coordinate: MatrixPosition;
 }
 interface UnmarkAttemptAction {
   readonly type: "unmark";
-  readonly coordinate: ProblemCoordinate;
+  readonly coordinate: MatrixPosition;
 }
 
 export type ProblemAttemptAction = MarkAttemptAction | UnmarkAttemptAction;
 
 interface IncorrectMark {
-  readonly position: ProblemCoordinate;
+  readonly position: MatrixPosition;
   readonly penalty: Duration;
 }
 
@@ -36,7 +36,7 @@ function getIncorrectMarkPenalty(previousIncorrectMarks: number): Duration {
 
 function incorrectMark(
   attempt: ProblemAttempt,
-  position: ProblemCoordinate
+  position: MatrixPosition
 ): ProblemAttempt {
   const penalty = getIncorrectMarkPenalty(attempt.incorrectMarks.length);
   const newRemaining = attempt.timeRemaining.minus(penalty);
@@ -54,6 +54,10 @@ function applyMarkAction(
   attempt: ProblemAttempt,
   { coordinate: { x, y } }: MarkAttemptAction
 ): ProblemAttempt {
+  if (attempt.marks[x][y] === true) {
+    throw new Error(`Already marked (${x}, ${y})`);
+  }
+
   const cellNeedsMark = problem.image[x][y];
   if (!cellNeedsMark) {
     return incorrectMark(attempt, { x, y });
@@ -93,17 +97,6 @@ export function applyAttemptAction(
     default:
       throw new Error("Unexpected action type");
   }
-}
-
-export function applyAttemptActions(
-  problem: Problem,
-  previousAttempt: ProblemAttempt,
-  actions: ReadonlyArray<ProblemAttemptAction>
-): ProblemAttempt {
-  return actions.reduce(
-    (attempt, action) => applyAttemptAction(problem, attempt, action),
-    previousAttempt
-  );
 }
 
 export function progressTime(

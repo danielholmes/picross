@@ -5,14 +5,17 @@ import noop from "lodash/noop";
 import { isComplete, Problem } from "model";
 import Grid from "components/grid";
 import {
-  applyAttemptActions,
+  applyAttemptAction,
   createNewAttempt,
   ProblemAttempt,
 } from "features/attempt";
-import { getMatrixRows } from "utils/matrix";
-import { SolveState, solveNextStep, startSolvingProblem } from "./solveProblem";
 import MarkedCell from "./MarkedCell";
 import EmptyCell from "./EmptyCell";
+import {
+  AttemptProbabilities,
+  getActionForProbabilities,
+  getProbabilities,
+} from "./solveProblem";
 
 interface AiAttemptProps {
   readonly problem: Problem;
@@ -20,7 +23,7 @@ interface AiAttemptProps {
 
 interface AiState {
   readonly attempt: ProblemAttempt;
-  readonly solveState?: SolveState;
+  readonly solveState?: AttemptProbabilities;
 }
 
 const minimumSpeed = 0;
@@ -36,7 +39,7 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
         return { attempt: initAttempt };
       }
 
-      const firstStep = startSolvingProblem(problem, initAttempt);
+      const firstStep = getProbabilities(problem, initAttempt);
       return {
         attempt: initAttempt,
         solveState: firstStep,
@@ -45,7 +48,6 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
   );
   const { marks } = attempt;
   const isAttemptComplete = isComplete(problem, marks);
-  // TODO: Can probably cancel generator
   // useEffect(() => {
   //   // Unfortunately this results in running twice (the state initialiser).
   //   // Maybe can skip on first run?
@@ -70,23 +72,17 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
           throw new Error("Invalid state - no step");
         }
 
-        const nextResult = solveNextStep(
-          problem,
+        const action = getActionForProbabilities(
           previousAttempt,
           previousSolveState
         );
-        console.log("solveNextStep", nextResult);
-        // if (!nextResult.solveState) {
-        //   return { attempt: previousAttempt, solveState: undefined };
-        // }
+        const newAttempt = applyAttemptAction(problem, previousAttempt, action);
+
+        const nextSolveState = getProbabilities(problem, newAttempt);
 
         return {
-          attempt: applyAttemptActions(
-            problem,
-            previousAttempt,
-            nextResult.actions
-          ),
-          solveState: nextResult.solveState,
+          attempt: newAttempt,
+          solveState: nextSolveState,
         };
       }
     );
@@ -104,43 +100,27 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
   // Cell
   const renderCell = useCallback(
     (x: number, y: number) => {
-      const highlighted = (() => {
-        if (isAttemptComplete) {
-          return false;
-        }
-        if (
-          solveState?.type === "checkLine" &&
-          ((solveState.dirtyLines[0].type === "column" &&
-            x === solveState.dirtyLines[0].index) ||
-            (solveState.dirtyLines[0].type === "row" &&
-              y === solveState.dirtyLines[0].index))
-        ) {
-          return true;
-        }
-        return false;
-      })();
-
       const probability = (() => {
-        if (solveState?.type === "probability") {
-          return solveState.probabilities[x][y];
+        if (solveState) {
+          return solveState[x][y];
         }
         return undefined;
       })();
 
       const cellStatus = marks[x][y];
       if (typeof cellStatus === "boolean") {
-        return <MarkedCell marked={cellStatus} highlighted={highlighted} />;
+        return <MarkedCell marked={cellStatus} />;
       }
 
-      return <EmptyCell probability={probability} highlighted={highlighted} />;
+      return <EmptyCell probability={probability} />;
     },
-    [marks, solveState, isAttemptComplete]
+    [marks, solveState]
   );
 
   return (
     <div>
       <h4>Attempt</h4>
-      <div style={{ float: "left" }}>
+      <div>
         <Grid problem={problem} renderCell={renderCell} showHints />
         {isAttemptComplete && <div>Complete</div>}
         {!isAttemptComplete && (
@@ -172,41 +152,6 @@ export default function AiAttempt({ problem }: AiAttemptProps): JSX.Element {
           </div>
         )}
       </div>
-      <div style={{ float: "right" }}>
-        <h3>AI State</h3>
-        <h5>Stage: {solveState?.type}</h5>
-        {solveState?.type === "checkLine" && (
-          <div>
-            <h6>Dirty lines</h6>
-            <ol>
-              {solveState.dirtyLines.map((line) => (
-                <li key={`${line.type}-${line.index}`}>
-                  {line.type} {line.index}
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
-        {solveState?.type === "probability" && (
-          <div>
-            <h6>Probabilities</h6>
-            <table>
-              <tbody>
-                {getMatrixRows(solveState.probabilities).map((row, y) => (
-                  <tr key={y}>
-                    {row.map((cell, x) => (
-                      <td key={x} style={{ border: "1px solid black" }}>
-                        {cell?.toFixed(2)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-      <div style={{ clear: "both" }} />
     </div>
   );
 }

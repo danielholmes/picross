@@ -3,11 +3,6 @@ import { getMatrixColumns, getMatrixRows, Matrix } from "./utils/matrix";
 export type ProblemCellStatus = boolean;
 export type AttemptCellStatus = ProblemCellStatus | undefined;
 
-export interface ProblemCoordinate {
-  readonly x: number;
-  readonly y: number;
-}
-
 export interface Problem {
   readonly image: Matrix<ProblemCellStatus>;
   readonly name?: string;

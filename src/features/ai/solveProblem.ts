@@ -1,58 +1,140 @@
-import { isComplete, Problem } from "model";
+import { AttemptCellStatus, Problem } from "model";
+import {
+  findMatrixCellEntry,
+  getMatrixRows,
+  Matrix,
+  MatrixPosition,
+  matrixZip,
+  reduceMatrixCells,
+  transpose,
+} from "utils/matrix";
 import { ProblemAttempt, ProblemAttemptAction } from "features/attempt";
-import {
-  CheckLineSolveState,
-  solveCheckLineNextStep,
-  startCheckLineSolving,
-} from "./checkLineSolve";
-import {
-  ProbabilitySolveState,
-  solveProbabilityNextStep,
-  startProbabilitySolving,
-} from "./probabilitySolve";
+import { filledArray } from "utils/array";
+import { createAllLinePermutations } from "./solveUtils";
 
-export type SolveState = CheckLineSolveState | ProbabilitySolveState;
+export type AttemptProbabilities = Matrix<number | undefined>;
 
-interface SolveResult {
-  readonly actions: ReadonlyArray<ProblemAttemptAction>;
-  readonly solveState: SolveState;
+function createLineProbabilities(
+  permutations: ReadonlyArray<ReadonlyArray<AttemptCellStatus>>
+): ReadonlyArray<number> {
+  const counts = permutations.reduce(
+    (previous, permutation) =>
+      previous.map((indexCount, i) => {
+        if (permutation[i]) {
+          return indexCount + 1;
+        }
+        return indexCount;
+      }),
+    filledArray(permutations[0].length, 0)
+  );
+  return counts.map((count) => count / permutations.length);
 }
 
-export function startSolvingProblem(
+function createDimensionProbabilities(
+  dimensionHints: Matrix<number>,
+  dimensionMarks: Matrix<AttemptCellStatus>
+): AttemptProbabilities {
+  const permutations = dimensionHints.map((hints, i) =>
+    createAllLinePermutations(hints, dimensionMarks[i])
+  );
+  const probabilities = permutations.map((linePermutations) =>
+    createLineProbabilities(linePermutations)
+  );
+  return matrixZip(probabilities, dimensionMarks, (a, b) => {
+    if (b !== undefined) {
+      return undefined;
+    }
+    return a;
+  });
+}
+
+export function getProbabilities(
   problem: Problem,
   attempt: ProblemAttempt
-): SolveState {
-  console.log("TODO: switch back to check");
-  return startProbabilitySolving(problem, attempt);
-  // return startCheckLineSolving(problem);
+): AttemptProbabilities {
+  const columnProbabilities = createDimensionProbabilities(
+    problem.columnHints,
+    attempt.marks
+  );
+  const rowProbabilities = transpose(
+    createDimensionProbabilities(problem.rowHints, getMatrixRows(attempt.marks))
+  );
+  return matrixZip(columnProbabilities, rowProbabilities, (a, b) => {
+    if (a === undefined || b === undefined) {
+      return undefined;
+    }
+    if (a === 0 || b === 0) {
+      return 0;
+    }
+    return Math.max(a, b);
+  });
 }
 
-export function solveNextStep(
-  problem: Problem,
+function getDefiniteAction(
   attempt: ProblemAttempt,
-  current: SolveState
-): SolveResult {
-  if (isComplete(problem, attempt.marks)) {
-    throw new Error("Already completed");
-  }
-
-  if (current.type === "checkLine") {
-    const nextResult = solveCheckLineNextStep(problem, attempt, current);
-    if (nextResult === undefined) {
-      return {
-        actions: [],
-        solveState: startProbabilitySolving(problem, attempt),
-      };
+  probabilities: AttemptProbabilities
+): ProblemAttemptAction | undefined {
+  const entry = findMatrixCellEntry(probabilities, (v, p) => {
+    if (attempt.marks[p.x][p.y] !== undefined) {
+      return false;
     }
-    return nextResult;
+    return v === 1 || v === 0;
+  });
+  if (entry === undefined) {
+    return undefined;
   }
 
-  const probabilityResult = solveProbabilityNextStep(problem, attempt, current);
-  if (probabilityResult === undefined) {
+  const [coordinate, probability] = entry;
+  if (probability === 1) {
     return {
-      actions: [],
-      solveState: startCheckLineSolving(problem),
+      type: "mark",
+      coordinate,
     };
   }
-  return probabilityResult;
+  return {
+    type: "unmark",
+    coordinate,
+  };
+}
+
+function getHighestProbabilityAction(
+  attempt: ProblemAttempt,
+  probabilities: AttemptProbabilities
+): ProblemAttemptAction {
+  const entry = reduceMatrixCells(
+    probabilities,
+    (previous, value, position) => {
+      if (value === undefined) {
+        return previous;
+      }
+      if (previous === undefined) {
+        return [position, value] as const;
+      }
+      const [, previousValue] = previous;
+      if (previousValue > value) {
+        return previous;
+      }
+      return [position, value] as const;
+    },
+    undefined as Readonly<[MatrixPosition, number]> | undefined
+  );
+  if (entry === undefined) {
+    throw new Error("No entry");
+  }
+
+  return {
+    type: "mark",
+    coordinate: entry[0],
+  };
+}
+
+export function getActionForProbabilities(
+  attempt: ProblemAttempt,
+  probabilities: AttemptProbabilities
+): ProblemAttemptAction {
+  const action = getDefiniteAction(attempt, probabilities);
+  if (action) {
+    return action;
+  }
+  return getHighestProbabilityAction(attempt, probabilities);
 }
